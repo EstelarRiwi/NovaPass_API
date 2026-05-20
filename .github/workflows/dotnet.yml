@@ -70,7 +70,7 @@ jobs:
             docker run -d \
               --name $CONTAINER_NAME \
               --restart unless-stopped \
-              -p 8080:8080 \
+              -p 8086:8080 \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_ISSUER="${{ secrets.JWT_ISSUER }}" \
               -e JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
