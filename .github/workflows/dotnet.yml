@@ -58,7 +58,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            IMAGE_NAME="ghcr.io/${GITHUB_REPOSITORY,,}:latest"
+            IMAGE_NAME="ghcr.io/estelariwi/novapass_api:latest"
             CONTAINER_NAME="novapass-api"
 
             echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u "JuanFelipe0215" --password-stdin
