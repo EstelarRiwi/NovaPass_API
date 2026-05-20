@@ -61,7 +61,7 @@ jobs:
             IMAGE_NAME="ghcr.io/estelariwi/novapass_api:latest"
             CONTAINER_NAME="novapass-api"
 
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "JuanFelipe0215" --password-stdin
+            echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u "JuanFelipe0215" --password-stdin
 
             docker pull $IMAGE_NAME
 
@@ -70,7 +70,7 @@ jobs:
             docker run -d \
               --name $CONTAINER_NAME \
               --restart unless-stopped \
-              -p 8085:8080 \
+              -p 8080:8080 \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_ISSUER="${{ secrets.JWT_ISSUER }}" \
               -e JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
