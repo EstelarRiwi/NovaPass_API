@@ -16,7 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQL")
     ?? throw new InvalidOperationException("La cadena de conexión no esta configurada");
 
-builder.Services.AddDbContext<NovaPassDbContext>(options => options.UseNpgsql(connectionString));
+// builder.Services.AddDbContext<NovaPassDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddAuthentication(options =>
 {
