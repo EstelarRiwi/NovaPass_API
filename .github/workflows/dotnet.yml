@@ -81,5 +81,6 @@ jobs:
             echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
             echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
             echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u "JuanFelipe0215" --password-stdin
+            docker rm -f novapass-api || true
             docker compose pull
             docker compose up -d --remove-orphans
