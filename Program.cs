@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
-
+using NovaPass_API.Models;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQL")
     ?? throw new InvalidOperationException("La cadena de conexión no esta configurada");
 
-// builder.Services.AddDbContext<NovaPassDbContext>(options => options.UseNpgsql(connectionString));
+builder.Services.AddDbContext<TicketEventsDbContext>(options => options.UseNpgsql(connectionString));
 
 builder.Services.AddAuthentication(options =>
 {
