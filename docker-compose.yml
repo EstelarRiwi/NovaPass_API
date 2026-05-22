@@ -3,7 +3,7 @@ version: '3.8'
 services:
 
   api:
-    build: .
+    image: ghcr.io/estelarriwi/novapass_api:latest
     container_name: novapass-api
     restart: unless-stopped
     ports:
