@@ -50,6 +50,18 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copiar docker-compose al VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: root
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "/app/novapass"
+
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v0.1.9
         with:
@@ -58,25 +70,16 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: 22
           script: |
-            IMAGE_NAME="ghcr.io/estelarriwi/novapass_api:latest"
-            CONTAINER_NAME="novapass-api"
-
+            cd /app/novapass
+            echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" > .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_ISSUER=${{ secrets.JWT_ISSUER }}" >> .env
+            echo "JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE }}" >> .env
+            echo "N8N_USER=${{ secrets.N8N_USER }}" >> .env
+            echo "N8N_PASSWORD=${{ secrets.N8N_PASSWORD }}" >> .env
+            echo "MONGODB_CONNECTION_STRING=${{ secrets.MONGODB_CONNECTION_STRING }}" >> .env
+            echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
+            echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
             echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u "JuanFelipe0215" --password-stdin
-
-            docker pull $IMAGE_NAME
-
-            docker rm -f $CONTAINER_NAME || true
-
-            docker run -d \
-              --name $CONTAINER_NAME \
-              --restart unless-stopped \
-              -p 8086:8080 \
-              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e JWT_ISSUER="${{ secrets.JWT_ISSUER }}" \
-              -e JWT_AUDIENCE="${{ secrets.JWT_AUDIENCE }}" \
-              -e DB_CONNECTION_STRING="${{ secrets.DB_CONNECTION_STRING }}" \
-              -e GOOGLE_CLIENT_ID="${{ secrets.GOOGLE_CLIENT_ID }}" \
-              -e GOOGLE_CLIENT_SECRET="${{ secrets.GOOGLE_CLIENT_SECRET }}" \
-              -e N8N_WEBHOOK_URL="${{ secrets.N8N_WEBHOOK_URL }}" \
-              -e MONGODB_CONNECTION_STRING="${{ secrets.MONGODB_CONNECTION_STRING }}" \
-              $IMAGE_NAME
+            docker compose pull
+            docker compose up -d --remove-orphans
