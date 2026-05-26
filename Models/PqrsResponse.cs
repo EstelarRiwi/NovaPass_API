@@ -1,21 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
+[Table("pqrs_responses", Schema = "Novapass")]
 public partial class PqrsResponse
 {
-    public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    [StringLength(36)]
+    public string Id { get; set; } = null!;
 
-    public int? PqrsId { get; set; }
+    [Column("pqrs_id")]
+    [StringLength(36)]
+    public string PqrsId { get; set; } = null!;
 
-    public int? AdminId { get; set; }
+    [Column("admin_id")]
+    [StringLength(36)]
+    public string AdminId { get; set; } = null!;
 
-    public string Respuesta { get; set; } = null!;
+    [Column("message")]
+    public string Message { get; set; } = null!;
 
-    public DateTime? CreatedAt { get; set; }
+    [Column("created_at", TypeName = "timestamp without time zone")]
+    public DateTime CreatedAt { get; set; }
 
-    public virtual User? Admin { get; set; }
+    [ForeignKey("AdminId")]
+    [InverseProperty("PqrsResponses")]
+    public virtual User Admin { get; set; } = null!;
 
-    public virtual Pqr? Pqrs { get; set; }
+    [ForeignKey("PqrsId")]
+    [InverseProperty("PqrsResponses")]
+    public virtual Pqr Pqrs { get; set; } = null!;
 }

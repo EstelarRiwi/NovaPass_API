@@ -6,8 +6,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("pqrs", Schema = "Novapass")]
-public partial class Pqr
+[Table("password_reset_tokens", Schema = "Novapass")]
+[Index("TokenHash", Name = "password_reset_tokens_token_hash_key", IsUnique = true)]
+public partial class PasswordResetToken
 {
     [Key]
     [Column("id")]
@@ -18,25 +19,20 @@ public partial class Pqr
     [StringLength(36)]
     public string UserId { get; set; } = null!;
 
-    [Column("type")]
-    public PqrsType Type { get; set; }
+    [Column("token_hash")]
+    [StringLength(255)]
+    public string TokenHash { get; set; } = null!;
 
-    [Column("status")]
-    public PqrsStatus Status { get; set; }
+    [Column("expires_at", TypeName = "timestamp without time zone")]
+    public DateTime ExpiresAt { get; set; }
 
-    [Column("message")]
-    public string Message { get; set; } = null!;
+    [Column("used")]
+    public short Used { get; set; }
 
     [Column("created_at", TypeName = "timestamp without time zone")]
     public DateTime CreatedAt { get; set; }
 
-    [Column("updated_at", TypeName = "timestamp without time zone")]
-    public DateTime UpdatedAt { get; set; }
-
-    [InverseProperty("Pqrs")]
-    public virtual ICollection<PqrsResponse> PqrsResponses { get; set; } = new List<PqrsResponse>();
-
     [ForeignKey("UserId")]
-    [InverseProperty("Pqrs")]
+    [InverseProperty("PasswordResetTokens")]
     public virtual User User { get; set; } = null!;
 }
