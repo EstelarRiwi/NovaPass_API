@@ -83,15 +83,25 @@ builder.Services.AddAuthorization(options =>
 });
 
 
+var corsOrigins = new List<string>
+{
+    "http://localhost:3001",
+    "http://localhost:3002",
+    "http://localhost:3003",
+    "http://localhost:3004",
+};
+
+var extraOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")
+    ?? builder.Configuration["Cors:Origins"];
+
+if (!string.IsNullOrWhiteSpace(extraOrigins))
+    corsOrigins.AddRange(extraOrigins.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("EstelarPolicy", policy =>
         policy
-            .WithOrigins(
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "http://localhost:3003",
-                "http://localhost:3004")
+            .WithOrigins([.. corsOrigins])
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
