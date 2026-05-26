@@ -1,3 +1,4 @@
+
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -22,12 +23,12 @@ public class JwtHelper(IConfiguration config)
         {
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Email, user.Email),
-            new("role", user.Rol ?? "customer"),
+            new("role", user.Role.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 
-        
-        foreach (var permission in user.Permisos ?? [])
+        var perms = user.Permissions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        foreach (var permission in perms)
             claims.Add(new Claim("permissions", permission));
 
         var token = new JwtSecurityToken(

@@ -1,7 +1,9 @@
+
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
+using NovaPass_API.Data;
 using NovaPass_API.DTOs.Auth;
 using NovaPass_API.Helpers;
 using NovaPass_API.Models;
@@ -12,10 +14,10 @@ namespace NovaPass_API.Services;
 
 public class AuthService : IAuthService
 {
-    
+
     public static readonly ConcurrentDictionary<string, byte> RevokedTokens = new();
 
-    
+
     private static readonly ConcurrentDictionary<string, (string Email, DateTime Expiry)> _resetTokens = new();
 
     private readonly TicketEventsDbContext _db;
@@ -46,9 +48,10 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = request.Email,
+            FullName = request.FullName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Rol = "customer",
-            Permisos = [],
+            Role = UserRol.customer,
+            IsActive = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -57,7 +60,7 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
 
         var token = _jwt.GenerateToken(user);
-        return new LoginResponse(token, user.Rol, [], ToDto(user));
+        return new LoginResponse(token, user.Role.ToString(), [], ToDto(user));
     }
 
     public async Task<LoginResponse> LoginAsync(LoginRequest request)
@@ -68,8 +71,8 @@ public class AuthService : IAuthService
             throw new AppException("Invalid credentials", 401);
 
         var token = _jwt.GenerateToken(user);
-        var permissions = user.Permisos?.ToArray() ?? [];
-        return new LoginResponse(token, user.Rol ?? "customer", permissions, ToDto(user));
+        var permissions = user.Permissions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        return new LoginResponse(token, user.Role.ToString(), permissions, ToDto(user));
     }
 
     public async Task<LoginResponse> GoogleLoginAsync(string googleIdToken)
@@ -105,10 +108,11 @@ public class AuthService : IAuthService
             user = new User
             {
                 Email = payload.Email,
+                FullName = payload.Name ?? payload.Email,
                 GoogleId = payload.Subject,
-                Foto = payload.Picture,
-                Rol = "customer",
-                Permisos = [],
+                PhotoUrl = payload.Picture,
+                Role = UserRol.customer,
+                IsActive = 1,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
@@ -117,18 +121,18 @@ public class AuthService : IAuthService
         }
 
         var token = _jwt.GenerateToken(user);
-        var permissions = user.Permisos?.ToArray() ?? [];
-        return new LoginResponse(token, user.Rol ?? "customer", permissions, ToDto(user));
+        var permissions = user.Permissions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
+        return new LoginResponse(token, user.Role.ToString(), permissions, ToDto(user));
     }
 
-    public async Task<UserDto> GetMeAsync(int userId)
+    public async Task<UserDto> GetMeAsync(string userId)
     {
         var user = await _db.Users.FindAsync(userId)
             ?? throw new AppException("User not found", 404);
         return ToDto(user);
     }
 
-    public Task LogoutAsync(int userId, string jti)
+    public Task LogoutAsync(string userId, string jti)
     {
         RevokedTokens.TryAdd(jti, 0);
         return Task.CompletedTask;
@@ -140,7 +144,7 @@ public class AuthService : IAuthService
         if (user == null) return;
 
         var resetToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
-            .Replace("/", "_").Replace("+", "-"); 
+            .Replace("/", "_").Replace("+", "-");
 
         _resetTokens[resetToken] = (request.Email, DateTime.UtcNow.AddHours(1));
 
@@ -157,20 +161,20 @@ public class AuthService : IAuthService
         }
     }
 
-    public async Task<UserDto> UpdateProfileAsync(int userId, UpdateProfileRequest request)
+    public async Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request)
     {
         var user = await _db.Users.FindAsync(userId)
             ?? throw new AppException("User not found", 404);
 
         if (request.Foto != null)
-            user.Foto = request.Foto;
+            user.PhotoUrl = request.Foto;
 
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return ToDto(user);
     }
 
-    public async Task<UserDto> UploadAvatarAsync(int userId, IFormFile file)
+    public async Task<UserDto> UploadAvatarAsync(string userId, IFormFile file)
     {
         if (file.Length == 0)
             throw new AppException("No file provided", 400);
@@ -187,7 +191,7 @@ public class AuthService : IAuthService
         await using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);
 
-        user.Foto = $"/avatars/{fileName}";
+        user.PhotoUrl = $"/avatars/{fileName}";
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
         return ToDto(user);
@@ -201,9 +205,11 @@ public class AuthService : IAuthService
         var user = new User
         {
             Email = request.Email,
+            FullName = request.FullName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Rol = request.Role,
-            Permisos = [.. request.Permissions],
+            Role = Enum.Parse<UserRol>(request.Role),
+            Permissions = request.Permissions.Length > 0 ? string.Join(",", request.Permissions) : null,
+            IsActive = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
         };
@@ -213,16 +219,16 @@ public class AuthService : IAuthService
         return ToDto(user);
     }
 
-    public async Task DeactivateEmployeeAsync(int employeeId)
+    public async Task DeactivateEmployeeAsync(string employeeId)
     {
         var user = await _db.Users.FindAsync(employeeId)
             ?? throw new AppException("Employee not found", 404);
-        
-        user.Rol = "inactive";
+
+        user.IsActive = 0;
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
     }
 
     private static UserDto ToDto(User user) =>
-        new(user.Id, user.Email, user.Rol ?? "customer", user.Foto);
+        new(user.Id, user.Email, user.Role.ToString(), user.PhotoUrl, user.FullName);
 }

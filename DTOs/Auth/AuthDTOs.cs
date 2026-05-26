@@ -1,16 +1,16 @@
 namespace NovaPass_API.DTOs.Auth;
 
-public record RegisterRequest(string Email, string Password);
+public record RegisterRequest(string Email, string Password, string FullName);
 
 public record LoginRequest(string Email, string Password);
 
 public record LoginResponse(string Token, string Role, string[] Permissions, UserDto User);
 
-public record UserDto(int Id, string Email, string Role, string? AvatarUrl);
+public record UserDto(string Id, string Email, string Role, string? AvatarUrl, string? FullName);
 
 public record GoogleLoginBody(string IdToken);
 
-public record CreateEmployeeRequest(string Email, string Password, string Role, string[] Permissions);
+public record CreateEmployeeRequest(string Email, string Password, string Role, string[] Permissions, string FullName);
 
 public record ForgotPasswordRequest(string Email);
 

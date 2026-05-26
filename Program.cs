@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NovaPass_API.Helpers;
-using NovaPass_API.Models;
+using NovaPass_API.Data;
 using NovaPass_API.Services;
 using NovaPass_API.Services.Interfaces;
 using Scalar.AspNetCore;
@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// 
+
 var connectionString = builder.Configuration.GetConnectionString("PostgreSQL")
     ?? throw new InvalidOperationException("La cadena de conexión no esta configurada");
 builder.Services.AddDbContext<TicketEventsDbContext>(options => options.UseNpgsql(connectionString));
@@ -124,7 +124,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();       // Serves wwwroot/avatars/
+app.UseStaticFiles();       
 app.UseCors("EstelarPolicy");
 app.UseRateLimiter();
 app.UseAuthentication();

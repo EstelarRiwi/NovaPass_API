@@ -1,27 +1,50 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
+[Table("ticket_categories", Schema = "Novapass")]
 public partial class TicketCategory
 {
-    public int Id { get; set; }
+    [Key]
+    [Column("id")]
+    [StringLength(36)]
+    public string Id { get; set; } = null!;
 
-    public int? EventId { get; set; }
+    [Column("event_id")]
+    [StringLength(36)]
+    public string EventId { get; set; } = null!;
 
-    public string Nombre { get; set; } = null!;
+    [Column("name")]
+    [StringLength(100)]
+    public string Name { get; set; } = null!;
 
-    public decimal Precio { get; set; }
+    [Column("price")]
+    [Precision(12, 2)]
+    public decimal Price { get; set; }
 
-    public int AforoTotal { get; set; }
+    [Column("total_capacity")]
+    public int TotalCapacity { get; set; }
 
-    public int AforoDisponible { get; set; }
+    [Column("available_capacity")]
+    public int AvailableCapacity { get; set; }
 
-    public DateTime? CreatedAt { get; set; }
+    [Column("created_at", TypeName = "timestamp without time zone")]
+    public DateTime CreatedAt { get; set; }
 
-    public virtual Event? Event { get; set; }
+    [Column("updated_at", TypeName = "timestamp without time zone")]
+    public DateTime UpdatedAt { get; set; }
 
+    [ForeignKey("EventId")]
+    [InverseProperty("TicketCategories")]
+    public virtual Event Event { get; set; } = null!;
+
+    [InverseProperty("Category")]
     public virtual ICollection<Seat> Seats { get; set; } = new List<Seat>();
 
+    [InverseProperty("Category")]
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

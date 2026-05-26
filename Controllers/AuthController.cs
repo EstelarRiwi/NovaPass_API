@@ -113,9 +113,9 @@ public class AuthController(IAuthService auth) : ControllerBase
         catch (AppException ex) { return StatusCode(ex.StatusCode, new { message = ex.Message }); }
     }
 
-    [HttpDelete("employees/{id:int}")]
+    [HttpDelete("employees/{id}")]
     [Authorize(Policy = "AdminOnly")]
-    public async Task<IActionResult> DeactivateEmployee(int id)
+    public async Task<IActionResult> DeactivateEmployee(string id)
     {
         try
         {
@@ -125,9 +125,8 @@ public class AuthController(IAuthService auth) : ControllerBase
         catch (AppException ex) { return StatusCode(ex.StatusCode, new { message = ex.Message }); }
     }
 
-    private int GetUserId()
-    {
-        var raw = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirstValue("sub");
-        return int.TryParse(raw, out var id) ? id : 0;
-    }
+    private string GetUserId() =>
+        User.FindFirstValue(ClaimTypes.NameIdentifier)
+        ?? User.FindFirstValue("sub")
+        ?? throw new AppException("Unauthorized", 401);
 }
