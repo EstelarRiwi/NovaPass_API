@@ -33,8 +33,15 @@ var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Conf
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? builder.Configuration["Jwt:Audience"]!;
 
-builder.Services.Configure<MongoSettings>(
-    builder.Configuration.GetSection("MongoDB"));
+builder.Services.Configure<MongoSettings>(options =>
+{
+    options.ConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
+        ?? builder.Configuration["MongoDB:ConnectionString"]
+        ?? string.Empty;
+    options.Database = Environment.GetEnvironmentVariable("MONGODB_DATABASE")
+        ?? builder.Configuration["MongoDB:Database"]
+        ?? "novapass_logs";
+});
 
 builder.Services.AddSingleton<ILogService, LogService>();
 
