@@ -39,7 +39,7 @@ public partial class TicketEventsDbContext : DbContext
         modelBuilder
             .HasPostgresExtension("Novapass", "uuid-ossp");
 
-        modelBuilder.HasPostgresEnum<UserRol>();
+        modelBuilder.HasPostgresEnum<UserRole>();
         modelBuilder.HasPostgresEnum<EventStatus>();
         modelBuilder.HasPostgresEnum<TicketStatus>();
         modelBuilder.HasPostgresEnum<PqrsType>();

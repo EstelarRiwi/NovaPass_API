@@ -77,6 +77,17 @@ public class AuthController(IAuthService auth) : ControllerBase
         return Ok(new { message = "If the email exists, a reset link has been sent" });
     }
 
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        try
+        {
+            await auth.ResetPasswordAsync(request);
+            return Ok(new { message = "Password updated successfully" });
+        }
+        catch (AppException ex) { return StatusCode(ex.StatusCode, new { message = ex.Message }); }
+    }
+
     [HttpPut("profile")]
     [Authorize]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)

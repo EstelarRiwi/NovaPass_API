@@ -1,5 +1,3 @@
-
-using System.Collections.Concurrent;
 using System.Security.Cryptography;
 using Google.Apis.Auth;
 using Microsoft.EntityFrameworkCore;
@@ -14,12 +12,6 @@ namespace NovaPass_API.Services;
 
 public class AuthService : IAuthService
 {
-
-    public static readonly ConcurrentDictionary<string, byte> RevokedTokens = new();
-
-
-    private static readonly ConcurrentDictionary<string, (string Email, DateTime Expiry)> _resetTokens = new();
-
     private readonly TicketEventsDbContext _db;
     private readonly JwtHelper _jwt;
     private readonly IConfiguration _config;
@@ -50,7 +42,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             FullName = request.FullName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Role = UserRol.customer,
+            Role = UserRole.customer,
             IsActive = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -111,7 +103,7 @@ public class AuthService : IAuthService
                 FullName = payload.Name ?? payload.Email,
                 GoogleId = payload.Subject,
                 PhotoUrl = payload.Picture,
-                Role = UserRol.customer,
+                Role = UserRole.customer,
                 IsActive = 1,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -132,10 +124,16 @@ public class AuthService : IAuthService
         return ToDto(user);
     }
 
-    public Task LogoutAsync(string userId, string jti)
+    public async Task LogoutAsync(string userId, string jti)
     {
-        RevokedTokens.TryAdd(jti, 0);
-        return Task.CompletedTask;
+        _db.TokenBlacklists.Add(new TokenBlacklist
+        {
+            Jti = jti,
+            UserId = userId,
+            InvalidatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddHours(8),
+        });
+        await _db.SaveChangesAsync();
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
@@ -143,10 +141,17 @@ public class AuthService : IAuthService
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
         if (user == null) return;
 
-        var resetToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
+        var tokenHash = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))
             .Replace("/", "_").Replace("+", "-");
 
-        _resetTokens[resetToken] = (request.Email, DateTime.UtcNow.AddHours(1));
+        _db.PasswordResetTokens.Add(new PasswordResetToken
+        {
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            CreatedAt = DateTime.UtcNow,
+        });
+        await _db.SaveChangesAsync();
 
         var webhookUrl = Environment.GetEnvironmentVariable("N8N_WEBHOOK_URL")
             ?? _config["N8N:WebhookUrl"];
@@ -156,9 +161,25 @@ public class AuthService : IAuthService
             await _http.PostAsJsonAsync(webhookUrl, new
             {
                 email = request.Email,
-                token = resetToken,
+                token = tokenHash,
             });
         }
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var resetToken = await _db.PasswordResetTokens
+            .Include(t => t.User)
+            .FirstOrDefaultAsync(t => t.TokenHash == request.Token);
+
+        if (resetToken == null || resetToken.Used != 0 || resetToken.ExpiresAt < DateTime.UtcNow)
+            throw new AppException("Invalid or expired token", 400);
+
+        resetToken.User.PasswordHash = BCryptNet.HashPassword(request.NewPassword);
+        resetToken.User.UpdatedAt = DateTime.UtcNow;
+        resetToken.Used = 1;
+
+        await _db.SaveChangesAsync();
     }
 
     public async Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request)
@@ -168,6 +189,10 @@ public class AuthService : IAuthService
 
         if (request.Foto != null)
             user.PhotoUrl = request.Foto;
+        if (request.FullName != null)
+            user.FullName = request.FullName;
+        if (request.Phone != null)
+            user.Phone = request.Phone;
 
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -207,7 +232,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             FullName = request.FullName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Role = Enum.Parse<UserRol>(request.Role),
+            Role = Enum.Parse<UserRole>(request.Role),
             Permissions = request.Permissions.Length > 0 ? string.Join(",", request.Permissions) : null,
             IsActive = 1,
             CreatedAt = DateTime.UtcNow,
@@ -230,5 +255,5 @@ public class AuthService : IAuthService
     }
 
     private static UserDto ToDto(User user) =>
-        new(user.Id, user.Email, user.Role.ToString(), user.PhotoUrl, user.FullName);
+        new(user.Id, user.Email, user.Role.ToString(), user.PhotoUrl, user.FullName, user.Phone);
 }

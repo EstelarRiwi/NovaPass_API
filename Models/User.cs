@@ -45,7 +45,7 @@ public partial class User
     public string? Permissions { get; set; }
 
     [Column("role")]
-    public UserRol Role { get; set; }
+    public UserRole Role { get; set; }
 
     [Column("is_active")]
     public short IsActive { get; set; }
