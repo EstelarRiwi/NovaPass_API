@@ -9,6 +9,7 @@ using NovaPass_API.Data;
 using NovaPass_API.Services;
 using NovaPass_API.Services.Interfaces;
 using Scalar.AspNetCore;
+using NovaPass_API.Infrastructure.MongoDB;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,12 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? builder.Configuration["Jwt:Audience"]!;
+
+builder.Services.Configure<MongoSettings>(
+    builder.Configuration.GetSection("MongoDB"));
+
+builder.Services.AddSingleton<ILogService, LogService>();
+
 
 builder.Services.AddAuthentication(options =>
 {
