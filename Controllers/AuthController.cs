@@ -9,7 +9,7 @@ using NovaPass_API.Services.Interfaces;
 namespace NovaPass_API.Controllers;
 
 [ApiController]
-[Route("api/v1/auth")]
+[Route("api/auth")]
 public class AuthController(IAuthService auth) : ControllerBase
 {
     [HttpPost("register")]
