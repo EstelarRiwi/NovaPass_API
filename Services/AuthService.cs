@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NovaPass_API.Data;
 using NovaPass_API.DTOs.Auth;
 using NovaPass_API.Helpers;
+using NovaPass_API.Infrastructure.MongoDB;
 using NovaPass_API.Models;
 using NovaPass_API.Services.Interfaces;
 using BCryptNet = BCrypt.Net.BCrypt;
@@ -17,25 +18,31 @@ public class AuthService : IAuthService
     private readonly IConfiguration _config;
     private readonly HttpClient _http;
     private readonly IWebHostEnvironment _env;
+    private readonly ILogService _log;
 
     public AuthService(
         TicketEventsDbContext db,
         JwtHelper jwt,
         IConfiguration config,
         IHttpClientFactory httpClientFactory,
-        IWebHostEnvironment env)
+        IWebHostEnvironment env,
+        ILogService log)
     {
         _db = db;
         _jwt = jwt;
         _config = config;
         _http = httpClientFactory.CreateClient();
         _env = env;
+        _log = log;
     }
 
     public async Task<LoginResponse> RegisterAsync(RegisterRequest request)
     {
         if (await _db.Users.AnyAsync(u => u.Email == request.Email))
+        {
+            await _log.LogAuthAsync("registro_fallido", new { email = request.Email, razon = "Email ya registrado" });
             throw new AppException("Email already registered", 409);
+        }
 
         var user = new User
         {
@@ -51,6 +58,8 @@ public class AuthService : IAuthService
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
+        await _log.LogAuthAsync("registro_exitoso", new { email = user.Email }, userId: user.Id);
+
         var token = _jwt.GenerateToken(user);
         return new LoginResponse(token, user.Role.ToString(), [], ToDto(user));
     }
@@ -60,7 +69,12 @@ public class AuthService : IAuthService
         var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
 
         if (user == null || user.PasswordHash == null || !BCryptNet.Verify(request.Password, user.PasswordHash))
+        {
+            await _log.LogAuthAsync("login_fallido", new { email = request.Email, razon = "Credenciales inválidas" });
             throw new AppException("Invalid credentials", 401);
+        }
+
+        await _log.LogAuthAsync("login_exitoso", new { email = user.Email, rol = user.Role.ToString() }, userId: user.Id);
 
         var token = _jwt.GenerateToken(user);
         var permissions = user.Permissions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
@@ -80,6 +94,7 @@ public class AuthService : IAuthService
         }
         catch (InvalidJwtException)
         {
+            await _log.LogAuthAsync("login_google_fallido", new { razon = "Token de Google inválido" });
             throw new AppException("Invalid Google token", 401);
         }
 
@@ -112,6 +127,8 @@ public class AuthService : IAuthService
             await _db.SaveChangesAsync();
         }
 
+        await _log.LogAuthAsync("login_google_exitoso", new { email = user.Email }, userId: user.Id);
+
         var token = _jwt.GenerateToken(user);
         var permissions = user.Permissions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [];
         return new LoginResponse(token, user.Role.ToString(), permissions, ToDto(user));
@@ -134,6 +151,8 @@ public class AuthService : IAuthService
             ExpiresAt = DateTime.UtcNow.AddHours(8),
         });
         await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("token_invalidado", new { jti }, userId: userId);
     }
 
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
@@ -152,6 +171,8 @@ public class AuthService : IAuthService
             CreatedAt = DateTime.UtcNow,
         });
         await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("contrasena_recuperada", new { email = user.Email }, userId: user.Id);
 
         var webhookUrl = Environment.GetEnvironmentVariable("N8N_WEBHOOK_URL")
             ?? _config["N8N:WebhookUrl"];
@@ -180,6 +201,8 @@ public class AuthService : IAuthService
         resetToken.Used = 1;
 
         await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("contrasena_cambiada", new { }, userId: resetToken.User.Id);
     }
 
     public async Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request)
@@ -187,12 +210,9 @@ public class AuthService : IAuthService
         var user = await _db.Users.FindAsync(userId)
             ?? throw new AppException("User not found", 404);
 
-        if (request.Foto != null)
-            user.PhotoUrl = request.Foto;
-        if (request.FullName != null)
-            user.FullName = request.FullName;
-        if (request.Phone != null)
-            user.Phone = request.Phone;
+        if (request.Foto != null) user.PhotoUrl = request.Foto;
+        if (request.FullName != null) user.FullName = request.FullName;
+        if (request.Phone != null) user.Phone = request.Phone;
 
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
@@ -225,7 +245,10 @@ public class AuthService : IAuthService
     public async Task<UserDto> CreateEmployeeAsync(CreateEmployeeRequest request)
     {
         if (await _db.Users.AnyAsync(u => u.Email == request.Email))
+        {
+            await _log.LogAuthAsync("creacion_empleado_fallida", new { email = request.Email, razon = "Email ya registrado" });
             throw new AppException("Email already registered", 409);
+        }
 
         var user = new User
         {
@@ -241,6 +264,9 @@ public class AuthService : IAuthService
 
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("empleado_creado", new { email = user.Email, rol = user.Role.ToString() }, userId: user.Id);
+
         return ToDto(user);
     }
 
@@ -252,6 +278,8 @@ public class AuthService : IAuthService
         user.IsActive = 0;
         user.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("empleado_desactivado", new { email = user.Email }, userId: employeeId);
     }
 
     private static UserDto ToDto(User user) =>
