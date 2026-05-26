@@ -55,12 +55,16 @@ builder.Services.AddAuthentication(options =>
     };
     options.Events = new JwtBearerEvents
     {
-        OnTokenValidated = context =>
+        OnTokenValidated = async context =>
         {
             var jti = context.Principal?.FindFirst("jti")?.Value;
-            if (jti != null && AuthService.RevokedTokens.ContainsKey(jti))
-                context.Fail("Token has been revoked");
-            return Task.CompletedTask;
+            if (jti != null)
+            {
+                var db = context.HttpContext.RequestServices
+                    .GetRequiredService<TicketEventsDbContext>();
+                var revoked = await db.TokenBlacklists.AnyAsync(t => t.Jti == jti);
+                if (revoked) context.Fail("Token has been revoked");
+            }
         }
     };
 });

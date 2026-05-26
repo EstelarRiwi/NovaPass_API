@@ -1,8 +1,47 @@
 namespace NovaPass_API.Models;
 
-public enum UserRol { customer, admin, seller, scanner }
-public enum EventStatus { active, cancelled, finished }
-public enum TicketStatus { available, sold, used, cancelled }
-public enum PqrsType { petition, complaint, claim, suggestion }
-public enum PqrsStatus { pending, in_progress, resolved }
-public enum PaymentStatus { pending, approved, rejected, refunded }
+public enum UserRole
+{
+    customer,
+    seller,
+    scanner,
+    admin
+}
+
+public enum EventStatus
+{
+    active,
+    cancelled,
+    sold_out
+}
+
+public enum TicketStatus
+{
+    pending,
+    active,
+    used,
+    cancelled
+}
+
+public enum PaymentStatus
+{
+    pending,
+    approved,
+    rejected
+}
+
+public enum PqrsType
+{
+    question,
+    complaint,
+    claim,
+    suggestion
+}
+
+public enum PqrsStatus
+{
+    pending,
+    in_progress,
+    resolved,
+    closed
+}

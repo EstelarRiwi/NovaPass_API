@@ -10,6 +10,7 @@ public interface IAuthService
     Task<UserDto> GetMeAsync(string userId);
     Task LogoutAsync(string userId, string jti);
     Task ForgotPasswordAsync(ForgotPasswordRequest request);
+    Task ResetPasswordAsync(ResetPasswordRequest request);
     Task<UserDto> UpdateProfileAsync(string userId, UpdateProfileRequest request);
     Task<UserDto> UploadAvatarAsync(string userId, IFormFile file);
     Task<UserDto> CreateEmployeeAsync(CreateEmployeeRequest request);
