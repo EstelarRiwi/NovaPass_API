@@ -37,7 +37,7 @@ public partial class TicketEventsDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder
-            .HasPostgresExtension("Novapass", "uuid-ossp");
+            .HasPostgresExtension("uuid-ossp");
 
         modelBuilder.HasPostgresEnum<UserRole>();
         modelBuilder.HasPostgresEnum<EventStatus>();
@@ -51,7 +51,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("events_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.CreatedBy).IsFixedLength();
@@ -80,7 +80,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("password_reset_tokens_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Used).HasDefaultValue((short)0);
@@ -94,7 +94,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("payments_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Currency).HasDefaultValueSql("'COP'::character varying");
@@ -111,7 +111,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("pqrs_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
@@ -127,7 +127,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("pqrs_responses_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.AdminId).IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
@@ -145,7 +145,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("seats_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.CategoryId).IsFixedLength();
             entity.Property(e => e.IsAvailable).HasDefaultValue((short)1);
@@ -158,7 +158,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("tickets_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.BuyerUserId).IsFixedLength();
             entity.Property(e => e.CategoryId).IsFixedLength();
@@ -194,7 +194,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("ticket_categories_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("\"Novapass\".uuid_generate_v4()")
+                .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
             entity.Property(e => e.AvailableCapacity).HasDefaultValue(0);
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
@@ -221,7 +221,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("users_pkey");
 
             entity.Property(e => e.Id)
-                .HasDefaultValueSql("(\"Novapass\".uuid_generate_v4())::text")
+                .HasDefaultValueSql("(uuid_generate_v4())::text")
                 .IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue((short)1);
