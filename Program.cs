@@ -17,8 +17,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 
-var connectionString = builder.Configuration.GetConnectionString("PostgreSQL")
-    ?? throw new InvalidOperationException("La cadena de conexión no esta configurada");
+var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
+                       ?? builder.Configuration.GetConnectionString("PostgreSQL")
+                       ?? throw new InvalidOperationException("La cadena de conexión no está configurada");
+
 builder.Services.AddDbContext<TicketEventsDbContext>(options => options.UseNpgsql(connectionString));
 
 
