@@ -16,12 +16,7 @@ using NovaPass_API.Models;
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-NpgsqlConnection.GlobalTypeMapper.MapEnum<UserRole>("user_role");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<EventStatus>("event_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<PqrsType>("pqrs_type");
-NpgsqlConnection.GlobalTypeMapper.MapEnum<PqrsStatus>("pqrs_status");
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -31,7 +26,17 @@ var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"
                        ?? builder.Configuration.GetConnectionString("PostgreSQL")
                        ?? throw new InvalidOperationException("La cadena de conexión no está configurada");
 
-builder.Services.AddDbContext<TicketEventsDbContext>(options => options.UseNpgsql(connectionString));
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.MapEnum<UserRole>("user_role");
+dataSourceBuilder.MapEnum<EventStatus>("event_status");
+dataSourceBuilder.MapEnum<TicketStatus>("ticket_status");
+dataSourceBuilder.MapEnum<PaymentStatus>("payment_status");
+dataSourceBuilder.MapEnum<PqrsType>("pqrs_type");
+dataSourceBuilder.MapEnum<PqrsStatus>("pqrs_status");
+var dataSource = dataSourceBuilder.Build();
+
+builder.Services.AddDbContext<TicketEventsDbContext>(options => 
+    options.UseNpgsql(dataSource));
 
 
 builder.Services.AddHttpClient();
