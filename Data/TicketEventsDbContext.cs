@@ -233,3 +233,4 @@ public partial class TicketEventsDbContext : DbContext
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
+
