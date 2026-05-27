@@ -116,6 +116,10 @@ var corsOrigins = new List<string>
     "http://localhost:8000",
     "http://localhost:5173",
     "http://localhost:5174",
+    "http://5.189.174.154:9000",
+    "http://5.189.174.154:9001",
+    "http://5.189.174.154:9002",
+    "http://5.189.174.154:9003",
 };
 
 var extraOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")
