@@ -29,7 +29,6 @@
     <Folder Include="DTOs\Auth\" />
     <Folder Include="Middleware\" />
     <Folder Include="Models\" />
-    <Folder Include="Services\Interfaces\" />
   </ItemGroup>
 
 </Project>
