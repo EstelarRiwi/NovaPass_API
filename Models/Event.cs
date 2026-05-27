@@ -39,7 +39,7 @@ public partial class Event
     public DateTime? SaleClosesAt { get; set; }
 
     [Column("status")]
-    public string Status { get; set; } = "active";
+    public EventStatus Status { get; set; } = EventStatus.active;
 
     [Column("created_by")]
     [StringLength(36)]
