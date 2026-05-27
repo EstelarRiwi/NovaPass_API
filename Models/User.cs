@@ -44,7 +44,7 @@ public partial class User
     [StringLength(100)]
     public string? Permissions { get; set; }
 
-    [Column("role")]
+    [Column("role", TypeName = "user_role")]
     public UserRole Role { get; set; }
 
     [Column("is_active")]

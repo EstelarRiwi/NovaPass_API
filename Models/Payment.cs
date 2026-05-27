@@ -34,7 +34,7 @@ public partial class Payment
     [StringLength(10)]
     public string Currency { get; set; } = null!;
 
-    [Column("status")]
+    [Column("status", TypeName = "payment_status")]
     public PaymentStatus Status { get; set; }
 
     [Column("webhook_received_at", TypeName = "timestamp without time zone")]

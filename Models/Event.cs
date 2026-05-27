@@ -38,7 +38,7 @@ public partial class Event
     [Column("sale_closes_at", TypeName = "timestamp without time zone")]
     public DateTime? SaleClosesAt { get; set; }
 
-    [Column("status")]
+    [Column("status", TypeName = "event_status")]
     public EventStatus Status { get; set; }
 
     [Column("created_by")]
