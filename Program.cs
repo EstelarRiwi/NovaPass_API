@@ -12,6 +12,7 @@ using Scalar.AspNetCore;
 using NovaPass_API.Infrastructure.MongoDB;
 
 var builder = WebApplication.CreateBuilder(args);
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
