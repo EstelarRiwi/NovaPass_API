@@ -45,6 +45,9 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddScoped<QrHelper>();
+builder.Services.AddScoped<PdfTicketHelper>();
+
 
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;

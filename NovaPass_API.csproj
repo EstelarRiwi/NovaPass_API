@@ -18,6 +18,8 @@
     </PackageReference>
     <PackageReference Include="MongoDB.Driver" Version="3.8.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="QuestPDF" Version="2026.5.0" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.14.14" />
   </ItemGroup>
 
@@ -25,7 +27,6 @@
     <Folder Include="Controllers\" />
     <Folder Include="Data\" />
     <Folder Include="DTOs\Auth\" />
-    <Folder Include="Helpers\" />
     <Folder Include="Middleware\" />
     <Folder Include="Models\" />
     <Folder Include="Services\Interfaces\" />
