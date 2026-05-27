@@ -10,9 +10,18 @@ using NovaPass_API.Services;
 using NovaPass_API.Services.Interfaces;
 using Scalar.AspNetCore;
 using NovaPass_API.Infrastructure.MongoDB;
+using Npgsql;
+using NovaPass_API.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
+NpgsqlConnection.GlobalTypeMapper.MapEnum<UserRole>("user_role");
+NpgsqlConnection.GlobalTypeMapper.MapEnum<EventStatus>("event_status");
+NpgsqlConnection.GlobalTypeMapper.MapEnum<TicketStatus>("ticket_status");
+NpgsqlConnection.GlobalTypeMapper.MapEnum<PaymentStatus>("payment_status");
+NpgsqlConnection.GlobalTypeMapper.MapEnum<PqrsType>("pqrs_type");
+NpgsqlConnection.GlobalTypeMapper.MapEnum<PqrsStatus>("pqrs_status");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
