@@ -41,8 +41,8 @@ public partial class Ticket
     [StringLength(36)]
     public string? SoldBySellerId { get; set; }
 
-    [Column("status", TypeName = "ticket_status")]
-    public TicketStatus Status { get; set; }
+    [Column("status")]
+    public string Status { get; set; } = "pending";
 
     [Column("purchased_at", TypeName = "timestamp without time zone")]
     public DateTime? PurchasedAt { get; set; }

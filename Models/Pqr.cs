@@ -18,11 +18,11 @@ public partial class Pqr
     [StringLength(36)]
     public string UserId { get; set; } = null!;
 
-    [Column("type", TypeName = "pqrs_type")]
-    public PqrsType Type { get; set; }
+    [Column("type")]
+    public string Type { get; set; } = null!;
 
-    [Column("status", TypeName = "pqrs_status")]
-    public PqrsStatus Status { get; set; }
+    [Column("status")]
+    public string Status { get; set; } = "pending";
 
     [Column("message")]
     public string Message { get; set; } = null!;
