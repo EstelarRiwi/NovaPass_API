@@ -12,15 +12,13 @@ using Scalar.AspNetCore;
 using NovaPass_API.Infrastructure.MongoDB;
 using Npgsql;
 using NovaPass_API.Models;
+using NovaPass_API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
-
-
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
 
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
                        ?? builder.Configuration.GetConnectionString("PostgreSQL")
@@ -38,16 +36,14 @@ var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<TicketEventsDbContext>(options => 
     options.UseNpgsql(dataSource));
 
-
 builder.Services.AddHttpClient();
-
 
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IPqrsService, PqrsService>();
 
-
-var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Jwt:Secret"]!;
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;
+var jwtSecret   = Environment.GetEnvironmentVariable("JWT_SECRET")   ?? builder.Configuration["Jwt:Secret"]!;
+var jwtIssuer   = Environment.GetEnvironmentVariable("JWT_ISSUER")   ?? builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? builder.Configuration["Jwt:Audience"]!;
 
 builder.Services.Configure<MongoSettings>(options =>
@@ -62,27 +58,26 @@ builder.Services.Configure<MongoSettings>(options =>
 
 builder.Services.AddSingleton<ILogService, LogService>();
 
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme    = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-    options.MapInboundClaims = false; 
+    options.MapInboundClaims = false;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
+        ValidateIssuer           = true,
+        ValidateAudience         = true,
+        ValidateLifetime         = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
-        ClockSkew = TimeSpan.Zero,
-        RoleClaimType = "role",  
-        NameClaimType = "sub",
+        ValidIssuer              = jwtIssuer,
+        ValidAudience            = jwtAudience,
+        IssuerSigningKey         = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        ClockSkew                = TimeSpan.Zero,
+        RoleClaimType            = "role",
+        NameClaimType            = "sub",
     };
     options.Events = new JwtBearerEvents
     {
@@ -100,12 +95,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("admin"));
 });
-
 
 var corsOrigins = new List<string>
 {
@@ -137,7 +130,6 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod());
 });
 
- 
 builder.Services.AddRateLimiter(options =>
 {
     options.AddPolicy("login", httpContext =>
@@ -145,10 +137,10 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 10,
-                Window = TimeSpan.FromMinutes(1),
+                PermitLimit          = 10,
+                Window               = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 0,
+                QueueLimit           = 0,
             }));
 
     options.AddPolicy("register", httpContext =>
@@ -156,10 +148,10 @@ builder.Services.AddRateLimiter(options =>
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anon",
             factory: _ => new FixedWindowRateLimiterOptions
             {
-                PermitLimit = 5,
-                Window = TimeSpan.FromHours(1),
+                PermitLimit          = 5,
+                Window               = TimeSpan.FromHours(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
-                QueueLimit = 0,
+                QueueLimit           = 0,
             }));
 
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -176,10 +168,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();       
+app.UseStaticFiles();
 app.UseCors("EstelarPolicy");
 app.UseRateLimiter();
 app.UseAuthentication();
+app.UseMiddleware<AuditLoggerMiddleware>();
+app.UseMiddleware<JwtValidationMiddleware>();
+app.UseMiddleware<PermissionMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
 

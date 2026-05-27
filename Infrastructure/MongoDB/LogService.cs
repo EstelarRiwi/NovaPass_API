@@ -31,8 +31,8 @@ public class LogService : ILogService
     public Task LogValidationAsync(string type, object payload, string? employeeId = null) =>
         InsertLog(_logsValidation, type, payload, employeeId: employeeId);
 
-    public Task LogSystemAsync(string type, object payload) =>
-        InsertLog(_logsSystem, type, payload);
+    public Task LogSystemAsync(string type, object payload, string? userId = null) =>
+    InsertLog(_logsSystem, type, payload, userId: userId);
 
     private static Task InsertLog(
         IMongoCollection<BsonDocument> collection,
