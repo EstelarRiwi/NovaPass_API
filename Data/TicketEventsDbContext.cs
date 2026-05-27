@@ -39,12 +39,12 @@ public partial class TicketEventsDbContext : DbContext
         modelBuilder
             .HasPostgresExtension("uuid-ossp");
 
-        modelBuilder.HasPostgresEnum<UserRole>("public", "user_role");
-        modelBuilder.HasPostgresEnum<EventStatus>("public", "event_status");
-        modelBuilder.HasPostgresEnum<TicketStatus>("public", "ticket_status");
-        modelBuilder.HasPostgresEnum<PaymentStatus>("public", "payment_status");
-        modelBuilder.HasPostgresEnum<PqrsType>("public", "pqrs_type");
-        modelBuilder.HasPostgresEnum<PqrsStatus>("public", "pqrs_status");
+        modelBuilder.HasPostgresEnum<UserRole>(null, "user_role");
+        modelBuilder.HasPostgresEnum<EventStatus>(null, "event_status");
+        modelBuilder.HasPostgresEnum<TicketStatus>(null, "ticket_status");
+        modelBuilder.HasPostgresEnum<PaymentStatus>(null, "payment_status");
+        modelBuilder.HasPostgresEnum<PqrsType>(null, "pqrs_type");
+        modelBuilder.HasPostgresEnum<PqrsStatus>(null, "pqrs_status");
 
         modelBuilder.Entity<Event>(entity =>
         {
