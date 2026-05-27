@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("token_blacklist", Schema = "Novapass")]
+[Table("token_blacklist")]
 public partial class TokenBlacklist
 {
     [Key]

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 namespace NovaPass_API.Models;
 
 [PrimaryKey("UserId", "EventId")]
-[Table("favorites", Schema = "Novapass")]
+[Table("favorites")]
 public partial class Favorite
 {
     [Key]

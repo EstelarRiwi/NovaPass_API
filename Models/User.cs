@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("users", Schema = "Novapass")]
+[Table("users")]
 [Index("Email", Name = "users_email_key", IsUnique = true)]
 [Index("GoogleId", Name = "users_google_id_key", IsUnique = true)]
 public partial class User

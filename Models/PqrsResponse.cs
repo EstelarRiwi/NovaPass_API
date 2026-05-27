@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("pqrs_responses", Schema = "Novapass")]
+[Table("pqrs_responses")]
 public partial class PqrsResponse
 {
     [Key]

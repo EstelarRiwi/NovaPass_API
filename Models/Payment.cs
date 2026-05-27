@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("payments", Schema = "Novapass")]
+[Table("payments")]
 public partial class Payment
 {
     [Key]

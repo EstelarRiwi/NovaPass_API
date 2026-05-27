@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("ticket_categories", Schema = "Novapass")]
+[Table("ticket_categories")]
 public partial class TicketCategory
 {
     [Key]

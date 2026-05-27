@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace NovaPass_API.Models;
 
-[Table("password_reset_tokens", Schema = "Novapass")]
+[Table("password_reset_tokens")]
 [Index("TokenHash", Name = "password_reset_tokens_token_hash_key", IsUnique = true)]
 public partial class PasswordResetToken
 {
