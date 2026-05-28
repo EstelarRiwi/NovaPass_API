@@ -48,6 +48,10 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<QrHelper>();
 builder.Services.AddScoped<PdfTicketHelper>();
 
+builder.Services.AddScoped<IEventsService, EventsService>();
+builder.Services.AddScoped<ITicketsService, TicketsService>();
+builder.Services.AddScoped<IReportsService, ReportsService>();
+
 
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;
