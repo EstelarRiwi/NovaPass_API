@@ -35,7 +35,7 @@ public partial class Payment
     public string Currency { get; set; } = null!;
 
     [Column("status")]
-    public string Status { get; set; } = "pending";
+    public PaymentStatus Status { get; set; } = PaymentStatus.pending;
 
     [Column("webhook_received_at", TypeName = "timestamp without time zone")]
     public DateTime? WebhookReceivedAt { get; set; }

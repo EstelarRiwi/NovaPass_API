@@ -42,7 +42,7 @@ public partial class Ticket
     public string? SoldBySellerId { get; set; }
 
     [Column("status")]
-    public string Status { get; set; } = "pending";
+    public TicketStatus Status { get; set; } = TicketStatus.active;
 
     [Column("purchased_at", TypeName = "timestamp without time zone")]
     public DateTime? PurchasedAt { get; set; }
