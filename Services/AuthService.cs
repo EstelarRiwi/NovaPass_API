@@ -49,7 +49,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             FullName = request.FullName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Role = "customer",
+            Role = UserRole.customer,
             IsActive = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -118,7 +118,7 @@ public class AuthService : IAuthService
                 FullName = payload.Name ?? payload.Email,
                 GoogleId = payload.Subject,
                 PhotoUrl = payload.Picture,
-                Role = "customer",
+                Role = UserRole.customer,
                 IsActive = 1,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -255,7 +255,7 @@ public class AuthService : IAuthService
             Email = request.Email,
             FullName = request.FullName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Role = request.Role,
+            Role = request.Role == "seller" ? UserRole.seller : request.Role == "scanner" ?  UserRole.scanner : UserRole.admin,
             Permissions = request.Permissions.Length > 0 ? string.Join(",", request.Permissions) : null,
             IsActive = 1,
             CreatedAt = DateTime.UtcNow,
@@ -283,5 +283,5 @@ public class AuthService : IAuthService
     }
 
     private static UserDto ToDto(User user) =>
-        new(user.Id, user.Email, user.Role, user.PhotoUrl, user.FullName, user.Phone);
+        new(user.Id, user.Email, user.Role.ToString(), user.PhotoUrl, user.FullName, user.Phone);
 }
