@@ -12,6 +12,7 @@ using Scalar.AspNetCore;
 using NovaPass_API.Infrastructure.MongoDB;
 using Npgsql;
 using NovaPass_API.Models;
+using MercadoPago.Config;
 
 var builder = WebApplication.CreateBuilder(args);
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -20,6 +21,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+
 
 
 var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") 
@@ -44,11 +46,18 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<PaymentService>();
 
 
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? builder.Configuration["Jwt:Audience"]!;
+
+var mpAccessToken = builder.Configuration["MercadoPago:AccessToken"];
+if (!string.IsNullOrWhiteSpace(mpAccessToken))
+{
+    MercadoPagoConfig.AccessToken = mpAccessToken;
+}
 
 builder.Services.Configure<MongoSettings>(options =>
 {
