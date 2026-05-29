@@ -60,12 +60,13 @@ var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? builder.Conf
 var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? builder.Configuration["Jwt:Audience"]!;
 
-var mpAccessToken = builder.Configuration["MercadoPago:AccessToken"];
+var mpAccessToken = Environment.GetEnvironmentVariable("MERCADOPAGO_ACCESS_TOKEN") 
+                    ?? builder.Configuration["MercadoPago:AccessToken"];
+
 if (!string.IsNullOrWhiteSpace(mpAccessToken))
 {
     MercadoPagoConfig.AccessToken = mpAccessToken;
 }
-
 builder.Services.Configure<MongoSettings>(options =>
 {
     options.ConnectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING")
