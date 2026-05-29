@@ -83,7 +83,6 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.MapInboundClaims = false; 
     options.TokenValidationParameters = new TokenValidationParameters
     {
         AuthenticationType = "Bearer",
@@ -95,8 +94,6 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero,
-        RoleClaimType = "role",  
-        NameClaimType = "sub",
     };
     options.Events = new JwtBearerEvents
     {
