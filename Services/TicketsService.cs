@@ -51,7 +51,8 @@ public class TicketsService(
             t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
             t.Status.ToString(),
             t.CreatedAt,
-            t.PaymentReference
+            t.PaymentReference,
+            t.Category?.Price ?? 0
         )).ToList();
 
         return new TicketHistoryResponse(dtos, total, page, perPage);
@@ -362,7 +363,8 @@ public class TicketsService(
         t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
         t.Status.ToString(),
         t.QrToken != null ? $"/api/tickets/{t.Id}/qr" : null,
-        $"/api/tickets/{t.Id}/pdf"
+        $"/api/tickets/{t.Id}/pdf",
+        t.Category?.Price ?? 0
     );
 
     private async Task PublishN8nAsync(string eventName, object payload)
