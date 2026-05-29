@@ -29,6 +29,7 @@ var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"
                        ?? throw new InvalidOperationException("La cadena de conexión no está configurada");
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableUnmappedTypes();
 dataSourceBuilder.MapEnum<UserRole>("user_role");
 dataSourceBuilder.MapEnum<EventStatus>("event_status");
 dataSourceBuilder.MapEnum<TicketStatus>("ticket_status");
