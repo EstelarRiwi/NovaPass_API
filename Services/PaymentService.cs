@@ -31,7 +31,7 @@ public class PaymentService
                 Failure = "http://localhost:5173/payment/failure",
                 Pending = "http://localhost:5173/payment/pending"
             },
-            AutoReturn = "Approved",
+            AutoReturn = "approved",
 
             ExternalReference = ticketId
         };
