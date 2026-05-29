@@ -186,8 +186,8 @@ public class TicketsService(
                 t.Id,
                 t.Event!.Name,
                 t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
-                t.QrToken != null ? $"/api/v1/tickets/{t.Id}/qr" : null,
-                $"/api/v1/tickets/{t.Id}/pdf"
+                t.QrToken != null ? $"/api/tickets/{t.Id}/qr" : null,
+                $"/api/tickets/{t.Id}/pdf"
             ));
         }
 
@@ -335,8 +335,8 @@ public class TicketsService(
         t.Category?.Name ?? "",
         t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
         t.Status.ToString(),
-        t.QrToken != null ? $"/api/v1/tickets/{t.Id}/qr" : null,
-        $"/api/v1/tickets/{t.Id}/pdf"
+        t.QrToken != null ? $"/api/tickets/{t.Id}/qr" : null,
+        $"/api/tickets/{t.Id}/pdf"
     );
 
     private async Task PublishN8nAsync(string eventName, object payload)

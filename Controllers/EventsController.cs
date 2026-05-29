@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace NovaPass_API.Controllers;
 
 [ApiController]
-[Route("api/v1/events")]
+[Route("api/events")]
 public class EventsController(IEventsService events) : ControllerBase
 {
     private string GetUserId() =>
@@ -135,7 +135,7 @@ public class EventsController(IEventsService events) : ControllerBase
     // ── Favoritos ───────────────────────────────────────────────────────────
 
     /// <summary>GET /favorites — Favoritos del usuario autenticado</summary>
-    [HttpGet("/api/v1/favorites")]
+    [HttpGet("/api/favorites")]
     [Authorize]
     public async Task<IActionResult> GetFavorites()
     {
@@ -148,7 +148,7 @@ public class EventsController(IEventsService events) : ControllerBase
     }
 
     /// <summary>POST /favorites — Agregar a favoritos</summary>
-    [HttpPost("/api/v1/favorites")]
+    [HttpPost("/api/favorites")]
     [Authorize]
     public async Task<IActionResult> AddFavorite([FromBody] AddFavoriteRequest request)
     {
@@ -165,7 +165,7 @@ public class EventsController(IEventsService events) : ControllerBase
     }
 
     /// <summary>DELETE /favorites/:id — Quitar de favoritos</summary>
-    [HttpDelete("/api/v1/favorites/{id}")]
+    [HttpDelete("/api/favorites/{id}")]
     [Authorize]
     public async Task<IActionResult> RemoveFavorite(string id)
     {

@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace NovaPass_API.Controllers;
 
 [ApiController]
-[Route("api/v1/tickets")]
+[Route("api/tickets")]
 [Authorize]
 public class TicketsController(ITicketsService tickets) : ControllerBase
 {
