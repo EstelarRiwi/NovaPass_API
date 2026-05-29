@@ -223,6 +223,8 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("(uuid_generate_v4())::text")
                 .IsFixedLength();
+            entity.Property(e => e.Role)
+                .HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue((short)1);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
