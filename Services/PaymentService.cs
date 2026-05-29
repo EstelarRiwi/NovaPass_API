@@ -19,20 +19,10 @@ public class PaymentService
                     UnitPrice = price,
                 }
             },
-
             Payer = new PreferencePayerRequest
             {
                 Email = userEmail,
             },
-
-            BackUrls = new PreferenceBackUrlsRequest
-            {
-                Success = "http://localhost:5173/payment/success",
-                Failure = "http://localhost:5173/payment/failure",
-                Pending = "http://localhost:5173/payment/pending"
-            },
-            AutoReturn = "approved",
-
             ExternalReference = ticketId
         };
 
