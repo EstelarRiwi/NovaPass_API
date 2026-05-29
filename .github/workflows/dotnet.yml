@@ -81,6 +81,8 @@ jobs:
             echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
             echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
             echo "QR_SECRET=${{ secrets.QR_SECRET }}" >> .env
+            echo "MERCADOPAGO_ACCESS_TOKEN=${{ secrets.MERCADOPAGO_ACCESS_TOKEN }}" >> .env
+            
             echo "${{ secrets.TOKEN }}" | docker login ghcr.io -u "JuanFelipe0215" --password-stdin
             docker compose down || true
             docker compose pull
