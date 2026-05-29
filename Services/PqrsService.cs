@@ -112,16 +112,23 @@ public class PqrsService : IPqrsService
         _db.PqrsResponses.Add(response);
         await _db.SaveChangesAsync();
 
-        var webhookUrl = _config["N8N:WebhookUrl"];
+        var webhookUrl = Environment.GetEnvironmentVariable("N8N_WEBHOOK_URL")
+            ?? _config["N8N:WebhookUrl"];
         if (!string.IsNullOrEmpty(webhookUrl))
         {
-            await _http.PostAsJsonAsync(webhookUrl, new
+            _ = Task.Run(async () =>
             {
-                evento       = "pqrs_respondida",
-                email        = pqr.User?.Email,
-                pqrs_id      = pqrId,
-                nuevo_estado = request.NewStatus.ToLower(),
-                respuesta    = request.Message,
+                try
+                {
+                    await _http.PostAsJsonAsync($"{webhookUrl}/webhook/pqrs-respondida", new
+                    {
+                        email    = pqr.User?.Email,
+                        type     = pqr.Type,
+                        status   = request.NewStatus.ToLower(),
+                        response = request.Message,
+                    });
+                }
+                catch { }
             });
         }
 

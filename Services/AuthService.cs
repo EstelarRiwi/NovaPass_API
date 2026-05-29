@@ -58,6 +58,7 @@ public class AuthService : IAuthService
         _db.Users.Add(user);
         await _db.SaveChangesAsync();
 
+        FireWebhook("/webhook/usuario-registrado", new { email = user.Email });
         await _log.LogAuthAsync("registro_exitoso", new { email = user.Email }, userId: user.Id);
 
         var token = _jwt.GenerateToken(user);
@@ -174,17 +175,7 @@ public class AuthService : IAuthService
 
         await _log.LogAuthAsync("contrasena_recuperada", new { email = user.Email }, userId: user.Id);
 
-        var webhookUrl = Environment.GetEnvironmentVariable("N8N_WEBHOOK_URL")
-            ?? _config["N8N:WebhookUrl"];
-
-        if (!string.IsNullOrEmpty(webhookUrl))
-        {
-            await _http.PostAsJsonAsync(webhookUrl, new
-            {
-                email = request.Email,
-                token = tokenHash,
-            });
-        }
+        FireWebhook("/webhook/recuperar-contrasena", new { email = request.Email, token = tokenHash });
     }
 
     public async Task ResetPasswordAsync(ResetPasswordRequest request)
@@ -322,6 +313,18 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
 
         await _log.LogAuthAsync("permisos_actualizados", new { email = user.Email, portals }, userId: employeeId);
+    }
+
+    private void FireWebhook(string path, object payload)
+    {
+        var webhookUrl = Environment.GetEnvironmentVariable("N8N_WEBHOOK_URL")
+            ?? _config["N8N:WebhookUrl"];
+        if (string.IsNullOrEmpty(webhookUrl)) return;
+        _ = Task.Run(async () =>
+        {
+            try { await _http.PostAsJsonAsync($"{webhookUrl}{path}", payload); }
+            catch { }
+        });
     }
 
     private static UserDto ToDto(User user) =>
