@@ -15,4 +15,7 @@ public interface IAuthService
     Task<UserDto> UploadAvatarAsync(string userId, IFormFile file);
     Task<UserDto> CreateEmployeeAsync(CreateEmployeeRequest request);
     Task DeactivateEmployeeAsync(string employeeId);
+    Task<List<EmployeeDto>> GetEmployeesAsync();
+    Task ActivateEmployeeAsync(string employeeId);
+    Task UpdatePermissionsAsync(string employeeId, string[] portals);
 }

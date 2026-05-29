@@ -201,7 +201,8 @@ public class EventsService(
     {
         var ev = await db.Events.FindAsync(eventId)
             ?? throw new AppException("Event not found", 404);
-        db.Events.Remove(ev);
+        ev.Status = EventStatus.cancelled;
+        ev.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync();
     }
 

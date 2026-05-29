@@ -10,7 +10,22 @@ public record UserDto(string Id, string Email, string Role, string? AvatarUrl, s
 
 public record GoogleLoginBody(string IdToken);
 
-public record CreateEmployeeRequest(string Email, string Password, string Role, string[] Permissions, string FullName);
+public record CreateEmployeeRequest(
+    string Email,
+    string Password,
+    string[] Permissions,
+    string? FullName = null,
+    string? Name = null,
+    string? Role = null)
+{
+    public string ResolvedName => FullName ?? Name ?? Email;
+    public string ResolvedRole => Role
+        ?? (Permissions.Contains("acceso") && !Permissions.Contains("taquilla") ? "scanner" : "seller");
+}
+
+public record EmployeeDto(string Id, string Name, string Email, string[] Permissions, bool Active, DateTime CreatedAt);
+
+public record UpdatePermissionsRequest(string[] Portals);
 
 public record ForgotPasswordRequest(string Email);
 
