@@ -46,10 +46,13 @@ builder.Services.AddHttpClient();
 
 
 builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<QrHelper>();
+builder.Services.AddScoped<PdfTicketHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEventsService, EventsService>();
 builder.Services.AddScoped<ITicketsService, TicketsService>();
 builder.Services.AddScoped<IPqrsService, PqrsService>();
+builder.Services.AddScoped<IReportsService, ReportsService>();
 builder.Services.AddScoped<PaymentService>();
 
 

@@ -15,6 +15,7 @@ services:
       - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=estelar;Username=postgres;Password=${POSTGRES_PASSWORD}
       - MONGODB_CONNECTION_STRING=mongodb://mongo:27017
       - CORS_ORIGINS=http://5.189.174.154:9000,http://5.189.174.154:9001,http://5.189.174.154:9002,http://5.189.174.154:9003
+      - QR_SECRET=${QR_SECRET}
       - N8N_WEBHOOK_URL=http://n8n:5678/webhook/estelar
     depends_on:
       - postgres
