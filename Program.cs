@@ -86,6 +86,7 @@ builder.Services.AddAuthentication(options =>
     options.MapInboundClaims = false; 
     options.TokenValidationParameters = new TokenValidationParameters
     {
+        AuthenticationType = "Bearer",
         ValidateIssuer = true,
         ValidateAudience = true,
         ValidateLifetime = true,
