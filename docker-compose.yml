@@ -14,7 +14,7 @@ services:
       - JWT_AUDIENCE=${JWT_AUDIENCE}
       - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=estelar;Username=postgres;Password=${POSTGRES_PASSWORD}
       - MONGODB_CONNECTION_STRING=mongodb://mongo:27017
-      - CORS_ORIGINS=http://5.189.174.154:9000,http://5.189.174.154:9001,http://5.189.174.154:9002,http://5.189.174.154:9003
+      - CORS_ORIGINS=https://estelar.andrescortes.dev,https://access.estelar.andrescortes.dev,https://tickets.estelar.andrescortes.dev,https://admin.estelar.andrescortes.dev
       - QR_SECRET=${QR_SECRET}
       - N8N_WEBHOOK_URL=http://n8n:5678/webhook/estelar
     depends_on:
@@ -67,10 +67,28 @@ services:
     networks:
       - estelar-network
 
+  nginx-proxy-manager:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: novapass-npm
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    volumes:
+      - npm-data:/data
+      - npm-letsencrypt:/etc/letsencrypt
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - estelar-network
+
 volumes:
   postgres-data:
   mongo-data:
   n8n-data:
+  npm-data:
+  npm-letsencrypt:
 
 networks:
   estelar-network:
