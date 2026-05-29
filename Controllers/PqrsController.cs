@@ -32,6 +32,13 @@ public class PqrsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("mine")]
+    public async Task<IActionResult> GetMine()
+    {
+        var result = await _pqrs.GetMyAsync(UserId);
+        return Ok(result);
+    }
+
     [HttpGet]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> GetAll()

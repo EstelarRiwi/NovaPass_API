@@ -62,6 +62,17 @@ public class PqrsService : IPqrsService
         return ToDto(pqr, pqr.PqrsResponses.ToList());
     }
 
+    public async Task<List<PqrDto>> GetMyAsync(string userId)
+    {
+        var pqrs = await _db.Pqrs
+            .Include(p => p.PqrsResponses)
+            .Where(p => p.UserId == userId)
+            .OrderByDescending(p => p.CreatedAt)
+            .ToListAsync();
+
+        return pqrs.Select(p => ToDto(p, p.PqrsResponses.ToList())).ToList();
+    }
+
     public async Task<List<PqrDto>> GetAllAsync()
     {
         var pqrs = await _db.Pqrs
