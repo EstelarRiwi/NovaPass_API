@@ -141,6 +141,10 @@ var corsOrigins = new List<string>
     "http://5.189.174.154:9001",
     "http://5.189.174.154:9002",
     "http://5.189.174.154:9003",
+    "https://estelar.andrescortes.dev",
+    "https://tickets.estelar.andrescortes.dev",
+    "https://access.estelar.andrescortes.dev",
+    "https://admin.estelar.andrescortes.dev",
 };
 
 var extraOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")
