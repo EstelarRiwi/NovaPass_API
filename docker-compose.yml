@@ -9,6 +9,7 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - ENABLE_SCALAR=true
       - JWT_SECRET=${JWT_SECRET}
       - JWT_ISSUER=${JWT_ISSUER}
       - JWT_AUDIENCE=${JWT_AUDIENCE}
