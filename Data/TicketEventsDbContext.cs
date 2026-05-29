@@ -53,6 +53,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
+            entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.CreatedBy).IsFixedLength();
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
@@ -96,6 +97,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
+            entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Currency).HasDefaultValueSql("'COP'::character varying");
             entity.Property(e => e.TicketId).IsFixedLength();
@@ -160,6 +162,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
+            entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.BuyerUserId).IsFixedLength();
             entity.Property(e => e.CategoryId).IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");

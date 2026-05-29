@@ -39,7 +39,6 @@ public class TicketsService(
             .Include(t => t.Event)
             .Include(t => t.Category)
             .Include(t => t.Seat)
-            .Include(t => t.PaymentReference)
             .OrderByDescending(t => t.CreatedAt);
 
         var total = await query.CountAsync();
