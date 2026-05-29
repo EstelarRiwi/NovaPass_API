@@ -36,6 +36,8 @@ public partial class TicketEventsDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("Novapass");
+        
         modelBuilder
             .HasPostgresExtension("uuid-ossp");
 
