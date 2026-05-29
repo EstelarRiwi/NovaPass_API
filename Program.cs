@@ -47,6 +47,9 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<JwtHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEventsService, EventsService>();
+builder.Services.AddScoped<ITicketsService, TicketsService>();
+builder.Services.AddScoped<IPqrsService, PqrsService>();
 builder.Services.AddScoped<PaymentService>();
 
 
@@ -98,13 +101,20 @@ builder.Services.AddAuthentication(options =>
     {
         OnTokenValidated = async context =>
         {
-            var jti = context.Principal?.FindFirst("jti")?.Value;
-            if (jti != null)
+            try
             {
-                var db = context.HttpContext.RequestServices
-                    .GetRequiredService<TicketEventsDbContext>();
-                var revoked = await db.TokenBlacklists.AnyAsync(t => t.Jti == jti);
-                if (revoked) context.Fail("Token has been revoked");
+                var jti = context.Principal?.FindFirst("jti")?.Value;
+                if (jti != null)
+                {
+                    var db = context.HttpContext.RequestServices
+                        .GetRequiredService<TicketEventsDbContext>();
+                    var revoked = await db.TokenBlacklists.AnyAsync(t => t.Jti == jti);
+                    if (revoked) context.Fail("Token has been revoked");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[JwtEvents] Error checking blacklist: {ex.Message}");
             }
         }
     };
@@ -205,5 +215,12 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TicketEventsDbContext>();
+    try { db.Database.EnsureCreated(); }
+    catch (Exception ex) { Console.Error.WriteLine($"[Startup] EnsureCreated: {ex.Message}"); }
+}
 
 app.Run();
