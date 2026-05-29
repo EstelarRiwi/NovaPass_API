@@ -89,14 +89,27 @@ public class TicketsService(
             category.AvailableCapacity -= request.Quantity;
             category.UpdatedAt = DateTime.UtcNow;
 
+            var ticketId = Guid.NewGuid().ToString();
+
+            // Generate QR immediately — no MP webhook integration yet
+            var qrToken = qrHelper.GenerateSignedQr(new QrPayload(
+                ticketId,
+                request.EventId,
+                request.SeatId ?? "N/A",
+                ExpiresAt: DateTime.UtcNow.AddYears(1)
+            ));
+
             var ticket = new Ticket
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = ticketId,
                 EventId = request.EventId,
                 CategoryId = request.CategoryId,
                 SeatId = request.SeatId,
                 BuyerUserId = userId,
-                Status = TicketStatus.pending,
+                Status = TicketStatus.active,
+                QrToken = qrToken,
+                PurchasedAt = DateTime.UtcNow,
+                ActivatedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
