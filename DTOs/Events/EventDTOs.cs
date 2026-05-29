@@ -8,8 +8,8 @@ public record CreateEventRequest(
     DateTime Date,
     string Venue,
     string? ImageUrl,
-    DateTime SaleOpensAt,
-    DateTime SaleClosesAt,
+    DateTime? SaleOpensAt,
+    DateTime? SaleClosesAt,
     List<CreateCategoryRequest> Categories
 );
 
