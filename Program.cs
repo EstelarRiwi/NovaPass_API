@@ -194,7 +194,10 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+var enableDocs = app.Environment.IsDevelopment() ||
+                 Environment.GetEnvironmentVariable("ENABLE_SCALAR") == "true";
+
+if (enableDocs)
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
