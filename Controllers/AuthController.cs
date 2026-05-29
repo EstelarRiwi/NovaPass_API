@@ -106,6 +106,7 @@ public class AuthController(IAuthService auth) : ControllerBase
     }
 
     [HttpPost("avatar")]
+    [HttpPost("profile/photo")]
     [Authorize]
     public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file)
     {
