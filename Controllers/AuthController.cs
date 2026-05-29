@@ -34,6 +34,11 @@ public class AuthController(IAuthService auth) : ControllerBase
             return Ok(result);
         }
         catch (AppException ex) { return StatusCode(ex.StatusCode, new { message = ex.Message }); }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[Login] Error inesperado: {ex}");
+            return StatusCode(500, new { message = "Error interno del servidor" });
+        }
     }
 
     [HttpPost("google")]

@@ -187,6 +187,19 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();       
 app.UseCors("EstelarPolicy");
+
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        var ex = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        Console.Error.WriteLine($"[Global] Error no controlado: {ex}");
+        await context.Response.WriteAsJsonAsync(new { message = "Error interno del servidor" });
+    });
+});
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
