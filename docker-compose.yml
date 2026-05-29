@@ -18,6 +18,7 @@ services:
       - CORS_ORIGINS=https://estelar.andrescortes.dev,https://access.estelar.andrescortes.dev,https://tickets.estelar.andrescortes.dev,https://admin.estelar.andrescortes.dev
       - QR_SECRET=${QR_SECRET}
       - N8N_WEBHOOK_URL=http://n8n:5678/webhook/estelar
+      - MERCADOPAGO_ACCESS_TOKEN=${MERCADOPAGO_ACCESS_TOKEN}
     depends_on:
       - postgres
       - mongo
