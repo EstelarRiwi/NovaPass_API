@@ -86,8 +86,8 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         AuthenticationType = "Bearer",
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = !string.IsNullOrEmpty(jwtIssuer),
+        ValidateAudience = !string.IsNullOrEmpty(jwtAudience),
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
