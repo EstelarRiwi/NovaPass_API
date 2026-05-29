@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace NovaPass_API.Controllers;
 
 [ApiController]
-[Route("api/v1/tickets")]
+[Route("api/tickets")]
 [Authorize]
 public class TicketsController(ITicketsService tickets) : ControllerBase
 {
@@ -94,12 +94,27 @@ public class TicketsController(ITicketsService tickets) : ControllerBase
         try
         {
             var pdf = await tickets.GetTicketPdfAsync(id, GetUserId());
-            // Retorna binario — NO envolver en ApiResponse (ver estándar de respuestas)
             return File(pdf, "application/pdf", $"ticket-{id}.pdf");
         }
         catch (AppException ex) when (ex.StatusCode == 404)
         {
             return NotFound(ApiResponse.Fail("TICKET_NOT_FOUND"));
+        }
+        catch (AppException ex) { return StatusCode(ex.StatusCode, ApiResponse.Fail(ex.Message)); }
+    }
+
+    /// <summary>GET /tickets/:id/qr — Imagen PNG del QR del ticket</summary>
+    [HttpGet("{id}/qr")]
+    public async Task<IActionResult> GetQr(string id)
+    {
+        try
+        {
+            var png = await tickets.GetTicketQrAsync(id, GetUserId());
+            return File(png, "image/png");
+        }
+        catch (AppException ex) when (ex.StatusCode == 404)
+        {
+            return NotFound(ApiResponse.Fail("QR_NOT_AVAILABLE"));
         }
         catch (AppException ex) { return StatusCode(ex.StatusCode, ApiResponse.Fail(ex.Message)); }
     }

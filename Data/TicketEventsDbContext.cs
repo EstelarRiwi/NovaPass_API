@@ -39,7 +39,13 @@ public partial class TicketEventsDbContext : DbContext
         modelBuilder.HasDefaultSchema("Novapass");
         
         modelBuilder
-            .HasPostgresExtension("uuid-ossp");
+            .HasPostgresExtension("uuid-ossp")
+            .HasPostgresEnum<UserRole>("user_role")
+            .HasPostgresEnum<EventStatus>("event_status")
+            .HasPostgresEnum<TicketStatus>("ticket_status")
+            .HasPostgresEnum<PaymentStatus>("payment_status")
+            .HasPostgresEnum<PqrsType>("pqrs_type")
+            .HasPostgresEnum<PqrsStatus>("pqrs_status");
 
         
         modelBuilder.Entity<Event>(entity =>
@@ -49,6 +55,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
+            entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.CreatedBy).IsFixedLength();
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
@@ -92,6 +99,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
+            entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.Currency).HasDefaultValueSql("'COP'::character varying");
             entity.Property(e => e.TicketId).IsFixedLength();
@@ -156,6 +164,7 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("uuid_generate_v4()")
                 .IsFixedLength();
+            entity.Property(e => e.Status).HasConversion<string>();
             entity.Property(e => e.BuyerUserId).IsFixedLength();
             entity.Property(e => e.CategoryId).IsFixedLength();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
@@ -219,6 +228,8 @@ public partial class TicketEventsDbContext : DbContext
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("(uuid_generate_v4())::text")
                 .IsFixedLength();
+            entity.Property(e => e.Role)
+                .HasConversion<string>();
             entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
             entity.Property(e => e.IsActive).HasDefaultValue((short)1);
             entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");

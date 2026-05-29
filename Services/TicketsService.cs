@@ -39,7 +39,6 @@ public class TicketsService(
             .Include(t => t.Event)
             .Include(t => t.Category)
             .Include(t => t.Seat)
-            .Include(t => t.PaymentReference)
             .OrderByDescending(t => t.CreatedAt);
 
         var total = await query.CountAsync();
@@ -52,7 +51,8 @@ public class TicketsService(
             t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
             t.Status.ToString(),
             t.CreatedAt,
-            t.PaymentReference
+            t.PaymentReference,
+            t.Category?.Price ?? 0
         )).ToList();
 
         return new TicketHistoryResponse(dtos, total, page, perPage);
@@ -90,14 +90,27 @@ public class TicketsService(
             category.AvailableCapacity -= request.Quantity;
             category.UpdatedAt = DateTime.UtcNow;
 
+            var ticketId = Guid.NewGuid().ToString();
+
+            // Generate QR immediately — no MP webhook integration yet
+            var qrToken = qrHelper.GenerateSignedQr(new QrPayload(
+                ticketId,
+                request.EventId,
+                request.SeatId ?? "N/A",
+                ExpiresAt: DateTime.UtcNow.AddYears(1)
+            ));
+
             var ticket = new Ticket
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = ticketId,
                 EventId = request.EventId,
                 CategoryId = request.CategoryId,
                 SeatId = request.SeatId,
                 BuyerUserId = userId,
-                Status = TicketStatus.pending,
+                Status = TicketStatus.active,
+                QrToken = qrToken,
+                PurchasedAt = DateTime.UtcNow,
+                ActivatedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
             };
@@ -186,8 +199,8 @@ public class TicketsService(
                 t.Id,
                 t.Event!.Name,
                 t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
-                t.QrToken != null ? $"/api/v1/tickets/{t.Id}/qr" : null,
-                $"/api/v1/tickets/{t.Id}/pdf"
+                t.QrToken != null ? $"/api/tickets/{t.Id}/qr" : null,
+                $"/api/tickets/{t.Id}/pdf"
             ));
         }
 
@@ -210,6 +223,20 @@ public class TicketsService(
             ?? throw new AppException("Ticket not found", 404);
 
         return pdfHelper.GenerateTicketPdf(ticket);
+    }
+
+    // ── QR image del ticket ─────────────────────────────────────────────────
+
+    public async Task<byte[]> GetTicketQrAsync(string ticketId, string userId)
+    {
+        var ticket = await db.Tickets
+            .FirstOrDefaultAsync(t => t.Id == ticketId && t.BuyerUserId == userId)
+            ?? throw new AppException("Ticket not found", 404);
+
+        if (string.IsNullOrEmpty(ticket.QrToken))
+            throw new AppException("QR not available", 404);
+
+        return qrHelper.GenerateQrImage(ticket.QrToken);
     }
 
     // ── Venta presencial (taquilla) ─────────────────────────────────────────
@@ -335,8 +362,9 @@ public class TicketsService(
         t.Category?.Name ?? "",
         t.Seat != null ? $"{t.Seat.RowCode}-{t.Seat.SeatNumber}" : null,
         t.Status.ToString(),
-        t.QrToken != null ? $"/api/v1/tickets/{t.Id}/qr" : null,
-        $"/api/v1/tickets/{t.Id}/pdf"
+        t.QrToken != null ? $"/api/tickets/{t.Id}/qr" : null,
+        $"/api/tickets/{t.Id}/pdf",
+        t.Category?.Price ?? 0
     );
 
     private async Task PublishN8nAsync(string eventName, object payload)

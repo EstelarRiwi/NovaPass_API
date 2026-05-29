@@ -33,12 +33,15 @@ public class ReportsService(TicketEventsDbContext db) : IReportsService
 
     public async Task<UsersRegisteredResponse> GetUsersRegisteredAsync(DateTime from, DateTime to)
     {
-        var users = await db.Users
+        var rawUsers = await db.Users
             .Where(u => u.CreatedAt >= from && u.CreatedAt <= to && u.Role == UserRole.customer)
+            .ToListAsync();
+
+        var users = rawUsers
             .GroupBy(u => u.CreatedAt.Date)
             .Select(g => new UsersRegisteredDto(g.Key, g.Count()))
             .OrderBy(x => x.Date)
-            .ToListAsync();
+            .ToList();
 
         return new UsersRegisteredResponse(users);
     }

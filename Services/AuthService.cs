@@ -250,12 +250,13 @@ public class AuthService : IAuthService
             throw new AppException("Email already registered", 409);
         }
 
+        var resolvedRole = request.ResolvedRole;
         var user = new User
         {
             Email = request.Email,
-            FullName = request.FullName,
+            FullName = request.ResolvedName,
             PasswordHash = BCryptNet.HashPassword(request.Password),
-            Role = request.Role == "seller" ? UserRole.seller : request.Role == "scanner" ?  UserRole.scanner : UserRole.admin,
+            Role = resolvedRole == "scanner" ? UserRole.scanner : resolvedRole == "admin" ? UserRole.admin : UserRole.seller,
             Permissions = request.Permissions.Length > 0 ? string.Join(",", request.Permissions) : null,
             IsActive = 1,
             CreatedAt = DateTime.UtcNow,
@@ -280,6 +281,47 @@ public class AuthService : IAuthService
         await _db.SaveChangesAsync();
 
         await _log.LogAuthAsync("empleado_desactivado", new { email = user.Email }, userId: employeeId);
+    }
+
+    public async Task<List<EmployeeDto>> GetEmployeesAsync()
+    {
+        var employees = await _db.Users
+            .Where(u => u.Role == UserRole.seller || u.Role == UserRole.scanner || u.Role == UserRole.admin)
+            .OrderBy(u => u.CreatedAt)
+            .ToListAsync();
+
+        return employees.Select(u => new EmployeeDto(
+            u.Id,
+            u.FullName,
+            u.Email,
+            u.Permissions?.Split(',', StringSplitOptions.RemoveEmptyEntries) ?? [],
+            u.IsActive == 1,
+            u.CreatedAt
+        )).ToList();
+    }
+
+    public async Task ActivateEmployeeAsync(string employeeId)
+    {
+        var user = await _db.Users.FindAsync(employeeId)
+            ?? throw new AppException("Employee not found", 404);
+
+        user.IsActive = 1;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("empleado_activado", new { email = user.Email }, userId: employeeId);
+    }
+
+    public async Task UpdatePermissionsAsync(string employeeId, string[] portals)
+    {
+        var user = await _db.Users.FindAsync(employeeId)
+            ?? throw new AppException("Employee not found", 404);
+
+        user.Permissions = portals.Length > 0 ? string.Join(",", portals) : null;
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        await _log.LogAuthAsync("permisos_actualizados", new { email = user.Email, portals }, userId: employeeId);
     }
 
     private static UserDto ToDto(User user) =>

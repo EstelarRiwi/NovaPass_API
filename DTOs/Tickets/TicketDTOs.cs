@@ -46,7 +46,8 @@ public record TicketSummaryDto(
     string? Seat,
     string Status,
     string? QrUrl,
-    string? PdfUrl
+    string? PdfUrl,
+    decimal Price
 );
 
 public record TicketHistoryDto(
@@ -56,7 +57,8 @@ public record TicketHistoryDto(
     string? Seat,
     string Status,
     DateTime PurchasedAt,
-    string? PaymentReference
+    string? PaymentReference,
+    decimal Price
 );
 
 public record TicketListResponse(List<TicketSummaryDto> Tickets);

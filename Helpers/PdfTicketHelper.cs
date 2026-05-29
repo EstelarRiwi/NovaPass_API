@@ -11,60 +11,103 @@ public class PdfTicketHelper(QrHelper qrHelper)
     {
         QuestPDF.Settings.License = LicenseType.Community;
 
-        // Generar imagen QR
-        byte[]? qrImage = null;
-        if (ticket.QrToken != null)
-        {
-            qrImage = qrHelper.GenerateQrImage(ticket.QrToken);
-        }
+        byte[]? qrImage = ticket.QrToken != null
+            ? qrHelper.GenerateQrImage(ticket.QrToken)
+            : null;
+
+        var eventDate = ticket.Event?.EventDate.ToString("dd/MM/yyyy HH:mm") ?? "";
+        var seat = ticket.Seat != null
+            ? $"{ticket.Seat.RowCode}-{ticket.Seat.SeatNumber}"
+            : "General";
+        var price = ticket.Category?.Price ?? 0;
+        var priceStr = $"$ {price:N0}".Replace(",", ".");
+        var buyerName = ticket.BuyerUser?.FullName ?? ticket.BuyerUser?.Email ?? "—";
+        var buyerEmail = ticket.BuyerUser?.Email ?? "";
+        var now = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
 
         var pdf = Document.Create(container =>
         {
             container.Page(page =>
             {
                 page.Size(PageSizes.A5);
-                page.Margin(2, Unit.Centimetre);
-                page.DefaultTextStyle(x => x.FontSize(11));
+                page.Margin(1.5f, Unit.Centimetre);
+                page.DefaultTextStyle(x => x.FontSize(10).FontFamily("Arial"));
 
                 page.Content().Column(col =>
                 {
-                    // Header
-                    col.Item().Text("🎭 ESTELAR")
-                        .Bold().FontSize(24).AlignCenter();
+                    // ── Header ──────────────────────────────────────
+                    col.Item().AlignCenter().Text("NovaPass")
+                        .Bold().FontSize(22);
+                    col.Item().AlignCenter().Text("Punto de Venta")
+                        .FontSize(10).FontColor(Colors.Grey.Medium);
+                    col.Item().PaddingVertical(6).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
-                    col.Item().PaddingVertical(4).LineHorizontal(1);
+                    // ── Ticket ID ────────────────────────────────────
+                    col.Item().AlignCenter().Text("BOLETA")
+                        .FontSize(9).FontColor(Colors.Grey.Medium);
+                    col.Item().AlignCenter().Text(ticket.Id)
+                        .Bold().FontSize(10);
+                    col.Item().PaddingVertical(6).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
-                    // Datos del evento
-                    col.Item().Text(ticket.Event?.Name ?? "")
-                        .Bold().FontSize(16).AlignCenter();
+                    // ── Cliente ──────────────────────────────────────
+                    col.Item().Text("Cliente:").FontSize(9).FontColor(Colors.Grey.Medium);
+                    col.Item().Text(buyerName).Bold().FontSize(11);
+                    if (!string.IsNullOrEmpty(buyerEmail))
+                        col.Item().Text(buyerEmail).FontSize(9).FontColor(Colors.Grey.Medium);
+                    col.Item().PaddingVertical(6).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
 
-                    col.Item().PaddingTop(8).Row(row =>
+                    // ── Evento ───────────────────────────────────────
+                    col.Item().Text("Evento:").FontSize(9).FontColor(Colors.Grey.Medium);
+                    col.Item().Text(ticket.Event?.Name ?? "").Bold().FontSize(11);
+                    col.Item().Text(eventDate).FontSize(10);
+                    col.Item().Text($"Lugar: {ticket.Event?.Venue ?? ""}").FontSize(10).FontColor(Colors.Grey.Medium);
+                    col.Item().PaddingVertical(6).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+
+                    // ── Detalle ──────────────────────────────────────
+                    col.Item().Row(row =>
                     {
-                        row.RelativeItem().Column(inner =>
-                        {
-                            inner.Item().Text($"Fecha: {ticket.Event?.EventDate:dd/MM/yyyy HH:mm}");
-                            inner.Item().Text($"Lugar: {ticket.Event?.Venue}");
-                            inner.Item().Text($"Categoría: {ticket.Category?.Name}");
-                            inner.Item().Text($"Asiento: {(ticket.Seat != null ? $"{ticket.Seat.RowCode}-{ticket.Seat.SeatNumber}" : "General")}");
-                            inner.Item().Text($"Estado: {ticket.Status}");
-                        });
+                        row.RelativeItem().Text("Categoría").FontSize(10);
+                        row.AutoItem().Text(ticket.Category?.Name ?? "").FontSize(10).Bold();
                     });
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("Asiento").FontSize(10);
+                        row.AutoItem().Text(seat).FontSize(10).Bold();
+                    });
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("P. Unitario").FontSize(10);
+                        row.AutoItem().Text(priceStr).FontSize(10).Bold();
+                    });
+                    col.Item().PaddingVertical(4).LineHorizontal(2).LineColor(Colors.Grey.Darken1);
 
-                    col.Item().PaddingVertical(8).LineHorizontal(1);
+                    // ── Total ────────────────────────────────────────
+                    col.Item().Row(row =>
+                    {
+                        row.RelativeItem().Text("TOTAL").Bold().FontSize(13);
+                        row.AutoItem().Text(priceStr).Bold().FontSize(13);
+                    });
+                    col.Item().PaddingVertical(4).LineHorizontal(2).LineColor(Colors.Grey.Darken1);
 
-                    // QR
+                    // ── QR ───────────────────────────────────────────
                     if (qrImage != null)
                     {
-                        col.Item().AlignCenter().Width(150).Image(qrImage);
-                        col.Item().PaddingTop(4)
+                        col.Item().PaddingTop(10).AlignCenter().Width(150).Image(qrImage);
+                        col.Item().PaddingTop(4).AlignCenter()
                             .Text("Presenta este código en la entrada")
-                            .FontSize(9).AlignCenter().FontColor(Colors.Grey.Medium);
+                            .FontSize(9).FontColor(Colors.Grey.Medium);
+                    }
+                    else
+                    {
+                        col.Item().PaddingTop(10).AlignCenter()
+                            .Text("QR pendiente de activación")
+                            .FontSize(9).FontColor(Colors.Grey.Medium);
                     }
 
-                    // Footer
-                    col.Item().PaddingTop(12)
-                        .Text($"ID: {ticket.Id}")
-                        .FontSize(8).AlignCenter().FontColor(Colors.Grey.Lighten2);
+                    // ── Footer ───────────────────────────────────────
+                    col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                    col.Item().PaddingTop(4).AlignCenter()
+                        .Text(now).FontSize(8).FontColor(Colors.Grey.Lighten1);
                 });
             });
         });

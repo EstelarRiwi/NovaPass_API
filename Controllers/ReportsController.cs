@@ -7,7 +7,7 @@ using NovaPass_API.Services.Interfaces;
 namespace NovaPass_API.Controllers;
 
 [ApiController]
-[Route("api/v1/reports")]
+[Route("api/reports")]
 [Authorize(Policy = "AdminOnly")]
 public class ReportsController(IReportsService reports) : ControllerBase
 {

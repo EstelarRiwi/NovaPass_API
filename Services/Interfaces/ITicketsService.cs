@@ -25,6 +25,9 @@ public interface ITicketsService
     // PDF del ticket (binario)
     Task<byte[]> GetTicketPdfAsync(string ticketId, string userId);
 
+    // QR image del ticket (PNG bytes)
+    Task<byte[]> GetTicketQrAsync(string ticketId, string userId);
+
     // Venta presencial (taquilla — rol seller)
     Task<TicketSummaryDto> CreatePresentialTicketAsync(string sellerId, PresentialSaleRequest request);
 
