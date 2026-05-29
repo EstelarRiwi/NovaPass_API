@@ -211,6 +211,20 @@ public class TicketsService(
         return pdfHelper.GenerateTicketPdf(ticket);
     }
 
+    // ── QR image del ticket ─────────────────────────────────────────────────
+
+    public async Task<byte[]> GetTicketQrAsync(string ticketId, string userId)
+    {
+        var ticket = await db.Tickets
+            .FirstOrDefaultAsync(t => t.Id == ticketId && t.BuyerUserId == userId)
+            ?? throw new AppException("Ticket not found", 404);
+
+        if (string.IsNullOrEmpty(ticket.QrToken))
+            throw new AppException("QR not available", 404);
+
+        return qrHelper.GenerateQrImage(ticket.QrToken);
+    }
+
     // ── Venta presencial (taquilla) ─────────────────────────────────────────
 
     public async Task<TicketSummaryDto> CreatePresentialTicketAsync(string sellerId, PresentialSaleRequest request)
