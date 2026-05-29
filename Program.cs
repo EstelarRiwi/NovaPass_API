@@ -29,6 +29,7 @@ var connectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING"
                        ?? throw new InvalidOperationException("La cadena de conexión no está configurada");
 
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+dataSourceBuilder.EnableUnmappedTypes();
 dataSourceBuilder.MapEnum<UserRole>("user_role");
 dataSourceBuilder.MapEnum<EventStatus>("event_status");
 dataSourceBuilder.MapEnum<TicketStatus>("ticket_status");
@@ -45,7 +46,13 @@ builder.Services.AddHttpClient();
 
 
 builder.Services.AddScoped<JwtHelper>();
+builder.Services.AddScoped<QrHelper>();
+builder.Services.AddScoped<PdfTicketHelper>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEventsService, EventsService>();
+builder.Services.AddScoped<ITicketsService, TicketsService>();
+builder.Services.AddScoped<IPqrsService, PqrsService>();
+builder.Services.AddScoped<IReportsService, ReportsService>();
 builder.Services.AddScoped<PaymentService>();
 
 
@@ -79,31 +86,36 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.MapInboundClaims = false; 
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        AuthenticationType = "Bearer",
+        ValidateIssuer = !string.IsNullOrEmpty(jwtIssuer),
+        ValidateAudience = !string.IsNullOrEmpty(jwtAudience),
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = jwtIssuer,
         ValidAudience = jwtAudience,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
         ClockSkew = TimeSpan.Zero,
-        RoleClaimType = "role",  
-        NameClaimType = "sub",
     };
     options.Events = new JwtBearerEvents
     {
         OnTokenValidated = async context =>
         {
-            var jti = context.Principal?.FindFirst("jti")?.Value;
-            if (jti != null)
+            try
             {
-                var db = context.HttpContext.RequestServices
-                    .GetRequiredService<TicketEventsDbContext>();
-                var revoked = await db.TokenBlacklists.AnyAsync(t => t.Jti == jti);
-                if (revoked) context.Fail("Token has been revoked");
+                var jti = context.Principal?.FindFirst("jti")?.Value;
+                if (jti != null)
+                {
+                    var db = context.HttpContext.RequestServices
+                        .GetRequiredService<TicketEventsDbContext>();
+                    var revoked = await db.TokenBlacklists.AnyAsync(t => t.Jti == jti);
+                    if (revoked) context.Fail("Token has been revoked");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[JwtEvents] Error checking blacklist: {ex.Message}");
             }
         }
     };
@@ -129,6 +141,10 @@ var corsOrigins = new List<string>
     "http://5.189.174.154:9001",
     "http://5.189.174.154:9002",
     "http://5.189.174.154:9003",
+    "https://estelar.andrescortes.dev",
+    "https://tickets.estelar.andrescortes.dev",
+    "https://access.estelar.andrescortes.dev",
+    "https://admin.estelar.andrescortes.dev",
 };
 
 var extraOrigins = Environment.GetEnvironmentVariable("CORS_ORIGINS")
@@ -187,9 +203,29 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();       
 app.UseCors("EstelarPolicy");
+
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        var ex = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+        Console.Error.WriteLine($"[Global] Error no controlado: {ex}");
+        await context.Response.WriteAsJsonAsync(new { message = "Error interno del servidor" });
+    });
+});
+
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TicketEventsDbContext>();
+    try { db.Database.EnsureCreated(); }
+    catch (Exception ex) { Console.Error.WriteLine($"[Startup] EnsureCreated: {ex.Message}"); }
+}
 
 app.Run();
