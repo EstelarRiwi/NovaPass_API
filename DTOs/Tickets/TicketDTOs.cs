@@ -20,8 +20,10 @@ public record PresentialSaleRequest(
     string EventId,
     string CategoryId,
     string? SeatId,
-    string? BuyerEmail,   // si el cliente no tiene cuenta
-    string? BuyerName
+    string? BuyerEmail,
+    string? BuyerName,
+    string? BuyerUserId = null,
+    int Quantity = 1
 );
 
 /// <summary>

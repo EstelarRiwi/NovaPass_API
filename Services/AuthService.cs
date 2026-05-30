@@ -327,6 +327,16 @@ public class AuthService : IAuthService
         });
     }
 
+    public async Task<UserSearchResult?> SearchUserAsync(string query)
+    {
+        var q = query.Trim().ToLower();
+        return await _db.Users
+            .Where(u => u.IsActive == 1 && u.Role == UserRole.customer)
+            .Where(u => u.Email.ToLower() == q || u.Email.ToLower().StartsWith(q) || u.FullName.ToLower().Contains(q))
+            .Select(u => new UserSearchResult(u.Id, u.FullName, u.Email))
+            .FirstOrDefaultAsync();
+    }
+
     private static UserDto ToDto(User user) =>
         new(user.Id, user.Email, user.Role.ToString(), user.PhotoUrl, user.FullName, user.Phone);
 }

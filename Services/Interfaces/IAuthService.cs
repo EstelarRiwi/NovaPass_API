@@ -18,4 +18,5 @@ public interface IAuthService
     Task<List<EmployeeDto>> GetEmployeesAsync();
     Task ActivateEmployeeAsync(string employeeId);
     Task UpdatePermissionsAsync(string employeeId, string[] portals);
+    Task<UserSearchResult?> SearchUserAsync(string query);
 }

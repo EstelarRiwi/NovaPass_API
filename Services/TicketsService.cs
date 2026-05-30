@@ -243,6 +243,8 @@ public class TicketsService(
 
     public async Task<TicketSummaryDto> CreatePresentialTicketAsync(string sellerId, PresentialSaleRequest request)
     {
+        var qty = Math.Max(1, request.Quantity);
+
         var ev = await db.Events.FindAsync(request.EventId)
             ?? throw new AppException("Event not found", 404);
 
@@ -256,48 +258,58 @@ public class TicketsService(
                 .FirstOrDefaultAsync()
                 ?? throw new AppException("Category not found", 404);
 
-            if (category.AvailableCapacity < 1)
+            if (category.AvailableCapacity < qty)
                 throw new AppException("No capacity available", 409);
 
-            category.AvailableCapacity--;
+            category.AvailableCapacity -= qty;
             category.UpdatedAt = DateTime.UtcNow;
 
-            var qrToken = qrHelper.GenerateSignedQr(new QrPayload(
-                Guid.NewGuid().ToString(), // se reemplaza abajo
-                request.EventId,
-                request.SeatId ?? "N/A",
-                ExpiresAt: DateTime.UtcNow.AddYears(1)
-            ));
-
-            var ticket = new Ticket
+            Ticket? firstTicket = null;
+            for (var i = 0; i < qty; i++)
             {
-                Id = Guid.NewGuid().ToString(),
-                EventId = request.EventId,
-                CategoryId = request.CategoryId,
-                SeatId = request.SeatId,
-                SoldBySellerId = sellerId,
-                Status = TicketStatus.active,
-                QrToken = qrToken,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
+                var ticketId = Guid.NewGuid().ToString();
+                var qrToken = qrHelper.GenerateSignedQr(new QrPayload(
+                    ticketId,
+                    request.EventId,
+                    request.SeatId ?? "N/A",
+                    ExpiresAt: DateTime.UtcNow.AddYears(1)
+                ));
 
-            db.Tickets.Add(ticket);
+                var ticket = new Ticket
+                {
+                    Id = ticketId,
+                    EventId = request.EventId,
+                    CategoryId = request.CategoryId,
+                    SeatId = request.SeatId,
+                    BuyerUserId = request.BuyerUserId,
+                    SoldBySellerId = sellerId,
+                    Status = TicketStatus.active,
+                    QrToken = qrToken,
+                    PurchasedAt = DateTime.UtcNow,
+                    ActivatedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
+
+                db.Tickets.Add(ticket);
+                firstTicket ??= ticket;
+            }
+
             await db.SaveChangesAsync();
             await transaction.CommitAsync();
 
-            // Publicar evento a n8n
             await PublishN8nAsync("ticket_vendido_presencial", new
             {
-                ticket_id = ticket.Id,
+                ticket_id = firstTicket!.Id,
                 event_title = ev.Name,
                 buyer_email = request.BuyerEmail,
                 buyer_name = request.BuyerName,
                 category = category.Name,
+                quantity = qty,
                 seat = request.SeatId
             });
 
-            return MapToSummary(ticket);
+            return MapToSummary(firstTicket!);
         }
         catch
         {

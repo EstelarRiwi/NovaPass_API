@@ -35,6 +35,8 @@ public record UpdateProfileRequest(string? Foto, string? FullName, string? Phone
 
 public record ChangePasswordRequest(string CurrentPassword, string NewPassword);
 
+public record UserSearchResult(string Id, string Name, string Email);
+
 public class AppException(string message, int statusCode = 500) : Exception(message)
 {
     public int StatusCode { get; } = statusCode;
