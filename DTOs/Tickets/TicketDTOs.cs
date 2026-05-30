@@ -102,5 +102,5 @@ public record TicketVerifiedDto(
 public record QrValidationResult(
     string State,        // "valid" | "used" | "fake"
     string? CustomerName,
-    string? Seat
+    string? CategoryName
 );

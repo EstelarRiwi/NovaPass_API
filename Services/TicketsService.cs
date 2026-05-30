@@ -326,7 +326,7 @@ public class TicketsService(
 
         var ticket = await db.Tickets
             .Include(t => t.BuyerUser)
-            .Include(t => t.Seat)
+            .Include(t => t.Category)
             .FirstOrDefaultAsync(t => t.Id == payload.TicketId);
 
         if (ticket == null)
@@ -344,9 +344,8 @@ public class TicketsService(
         await db.SaveChangesAsync();
 
         var customerName = ticket.BuyerUser?.FullName ?? "Unknown";
-        var seat = ticket.Seat != null ? $"{ticket.Seat.RowCode}-{ticket.Seat.SeatNumber}" : payload.Seat;
 
-        return new QrValidationResult("valid", customerName, seat);
+        return new QrValidationResult("valid", customerName, ticket.Category?.Name);
     }
 
     // ── Mapper privado ──────────────────────────────────────────────────────
