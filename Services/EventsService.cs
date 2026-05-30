@@ -67,6 +67,10 @@ public class EventsService(
 
         if (status != null && Enum.TryParse<EventStatus>(status, out var statusEnum))
             query = query.Where(e => e.Status == statusEnum);
+        else
+            query = query
+                .Where(e => e.Status != EventStatus.cancelled)
+                .Where(e => e.EventDate >= DateTime.UtcNow);
 
         var total = await query.CountAsync();
         var events = await query
